@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/custom_received_ui">
+
+    <TextView
+        android:id="@+id/callInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/child_layout"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:id="@+id/child_layout"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintVertical_bias="0.8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/hangup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_bg_circle"
+            android:backgroundTint="@android:color/holo_red_light"
+            android:src="@drawable/ic_call_end_icon"
+            app:layout_constraintEnd_toStartOf="@+id/answer"
+            app:layout_constraintBottom_toBottomOf="@id/child_layout"
+            app:layout_constraintStart_toStartOf="@id/child_layout"
+            app:layout_constraintTop_toTopOf="@id/child_layout" />
+
+        <ImageButton
+            android:id="@+id/answer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_bg_circle"
+            android:backgroundTint="@color/colorBtnCall"
+            android:src="@drawable/ic_call_end_icon"
+            app:layout_constraintTop_toTopOf="@id/child_layout"
+            app:layout_constraintBottom_toBottomOf="@id/child_layout"
+            app:layout_constraintEnd_toEndOf="@id/child_layout"
+            app:layout_constraintStart_toEndOf="@+id/hangup"
+            />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

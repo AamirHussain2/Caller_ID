@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.CallActivity">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_image"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_contact_image"
+        app:civ_border_width="1dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.1"
+        app:layout_constraintBottom_toTopOf="@id/child_layout"/>
+
+    <TextView
+        android:id="@+id/simType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sim 1"
+        app:layout_constraintTop_toBottomOf="@+id/profile_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintBottom_toTopOf="@+id/child_layout"/>
+
+    <TextView
+        android:id="@+id/callInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/simType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintBottom_toTopOf="@+id/child_layout"/>
+
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:textSize="20sp"
+        android:visibility="gone"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toBottomOf="@id/callInfo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/child_layout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:paddingTop="20dp"
+        app:layout_constraintHeight_percent="0.4"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/ic_bottom_dialog_design"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/child_layout"
+            app:layout_constraintStart_toStartOf="@id/child_layout"
+            app:layout_constraintEnd_toEndOf="@id/child_layout">
+
+            <ImageButton
+                android:id="@+id/keypad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_bg_circle"
+                android:src="@drawable/ic_keypad_icon"
+                app:layout_constraintTop_toTopOf="@+id/constraint"
+                app:layout_constraintStart_toStartOf="@+id/constraint"
+                app:layout_constraintEnd_toStartOf="@+id/mute"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keypad"
+                android:textSize="15sp"
+                app:layout_constraintTop_toBottomOf="@id/keypad"
+                app:layout_constraintStart_toStartOf="@+id/keypad"
+                app:layout_constraintEnd_toEndOf="@id/keypad"
+                android:padding="7dp"/>
+
+            <ImageButton
+                android:id="@+id/mute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_mute_icon"
+                android:background="@drawable/ic_bg_circle"
+                app:layout_constraintTop_toTopOf="@+id/keypad"
+                app:layout_constraintStart_toEndOf="@+id/keypad"
+                app:layout_constraintEnd_toStartOf="@+id/speaker"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mute"
+                android:textSize="15sp"
+                app:layout_constraintTop_toBottomOf="@id/mute"
+                app:layout_constraintStart_toStartOf="@+id/mute"
+                app:layout_constraintEnd_toEndOf="@id/mute"
+                android:padding="7dp"/>
+
+            <ImageButton
+                android:id="@+id/speaker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_speaker_icon"
+                android:background="@drawable/ic_bg_circle"
+                app:layout_constraintTop_toTopOf="@+id/mute"
+                app:layout_constraintStart_toEndOf="@+id/mute"
+                app:layout_constraintEnd_toStartOf="@+id/more"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Speaker"
+                android:textSize="15sp"
+                app:layout_constraintTop_toBottomOf="@id/speaker"
+                app:layout_constraintStart_toStartOf="@+id/speaker"
+                app:layout_constraintEnd_toEndOf="@id/speaker"
+                android:padding="7dp"/>
+
+            <ImageButton
+                android:id="@+id/more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_more_icon"
+                android:background="@drawable/ic_bg_circle"
+                app:layout_constraintTop_toTopOf="@+id/speaker"
+                app:layout_constraintStart_toEndOf="@+id/speaker"
+                app:layout_constraintEnd_toEndOf="@id/constraint"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="More"
+                android:textSize="15sp"
+                app:layout_constraintTop_toBottomOf="@id/more"
+                app:layout_constraintStart_toStartOf="@+id/more"
+                app:layout_constraintEnd_toEndOf="@id/more"
+                android:padding="7dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_call_end_icon"
+            android:background="@drawable/ic_bg_circle"
+            android:id="@+id/hangup"
+            app:layout_constraintBottom_toBottomOf="@id/child_layout"
+            android:backgroundTint="@android:color/holo_red_light"
+            app:layout_constraintTop_toBottomOf="@+id/constraint"
+            app:layout_constraintStart_toStartOf="@id/child_layout"
+            app:layout_constraintEnd_toEndOf="@id/child_layout"/>
+
+        <ImageButton
+            android:id="@+id/answer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_bg_circle"
+            android:backgroundTint="@color/colorBtnCall"
+            android:src="@drawable/ic_call_end_icon"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/child_layout"
+            app:layout_constraintEnd_toEndOf="@id/child_layout"
+            app:layout_constraintStart_toEndOf="@+id/hangup"
+            app:layout_constraintTop_toBottomOf="@+id/constraint" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

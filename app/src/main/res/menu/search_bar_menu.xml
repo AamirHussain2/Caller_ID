@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/mic"
+        android:icon="@drawable/ic_mic"
+        android:title="voice"
+        app:showAsAction="always"
+        />
+    <item
+        android:id="@+id/callHistory"
+        android:title="Call history"
+        />
+    <item
+        android:id="@+id/Settings"
+        android:title="Settings"
+        />
+    <item
+        android:id="@+id/helpAndFeedback"
+        android:title="Help and feedback"
+        />
+
+</menu>
