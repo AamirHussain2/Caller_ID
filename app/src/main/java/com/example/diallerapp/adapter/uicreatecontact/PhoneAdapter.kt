@@ -1,19 +1,67 @@
 package com.example.diallerapp.adapter.uicreatecontact
 
-import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.example.diallerapp.databinding.ActivityCreateContactBinding
 import com.example.diallerapp.databinding.CustomPhoneUiBinding
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
-import com.example.diallerapp.viewholder.uicreatecontact.PhoneViewHolder
 
-class PhoneAdapter:
-    ListAdapter<PhoneModel, PhoneViewHolder>(PhoneDiffUtil()) {
+class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
+    ListAdapter<PhoneModel, PhoneAdapter.PhoneViewHolder>(PhoneDiffUtil()) {
+
+    inner class PhoneViewHolder(val binding: CustomPhoneUiBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: PhoneModel) {
+
+
+            binding.edPhone.editText?.setText(item.phoneNumber)
+            binding.labelMenu.editText?.setText(item.phoneLabel)
+            val currentList = currentList.toMutableList()
+//            currentList.add(PhoneModel("1", "work"))
+            Log.d("CurrentList", "newList: $currentList \n size: ${currentList.size}")
+
+            binding.phoneDeleteButton.setOnClickListener {
+//                if(currentList.isNotEmpty()){
+                if(adapterPosition != -1 && currentList.isNotEmpty()){
+                    val newList = currentList.map { it.copy() } as ArrayList
+                    Log.d("PhoneAdapter", "phoneDeleteButton: $newList")
+
+
+                    Log.d("PhoneAdapter", "bind: if")
+                    newList.removeAt(adapterPosition)
+                    if (newList.isEmpty()) {
+                        Log.d("PhoneAdapter", "bind: currentList.isEmpty()")
+                        activityBinding.addPhoneButton.visibility = View.VISIBLE
+                    }
+                    Log.d("PhoneAdapter", "phoneDeleteButton: $newList")
+                    submitList(newList)
+                }else{
+                    Log.d("PhoneAdapter", "bind: else")
+                    activityBinding.addPhoneButton.visibility = View.VISIBLE
+//                    binding.root.visibility = View.GONE
+                }
+
+            }
+
+            binding.addPhone.setOnClickListener {
+                val newList = currentList.map { it.copy() } as ArrayList
+                Log.d("addPhone", "before newList: ${newList.size}")
+//            Log.d("PhoneAdapter", "newList: ${newList[1].phoneNumber}")
+
+                newList.add(item)
+                Log.d("addPhone", "after newList: ${newList.size}")
+                submitList(newList)
+            }
+
+        }
+
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhoneViewHolder {
         val binding = CustomPhoneUiBinding.inflate(
@@ -28,26 +76,11 @@ class PhoneAdapter:
         val item = getItem(position)
         holder.bind(item)
 
-        holder.binding.phoneDeleteButton.setOnClickListener {
-            val newList = currentList.toMutableList()
-            Log.d("PhoneAdapter", "phoneDeleteButton: $newList")
-            newList.removeAt(position)
-            submitList(newList)
-        }
-
-        holder.binding.addPhone.setOnClickListener {
-            val newList = currentList.toMutableList()
-            Log.d("PhoneAdapter", "newList: ${newList[0].phoneNumber}")
-//            Log.d("PhoneAdapter", "newList: ${newList[1].phoneNumber}")
-            newList.add(item)
-            Log.d("PhoneAdapter", "newList: ${newList.size}")
-            submitList(newList)
-        }
     }
 
-    class PhoneDiffUtil: DiffUtil.ItemCallback<PhoneModel>(){
+    class PhoneDiffUtil : DiffUtil.ItemCallback<PhoneModel>() {
         override fun areContentsTheSame(oldItem: PhoneModel, newItem: PhoneModel): Boolean {
-            return oldItem.phoneNumber == newItem.phoneNumber
+            return oldItem.phoneNumber == newItem.phoneNumber && oldItem.phoneLabel == newItem.phoneLabel
         }
 
         override fun areItemsTheSame(oldItem: PhoneModel, newItem: PhoneModel): Boolean {

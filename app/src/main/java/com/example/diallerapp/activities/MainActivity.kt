@@ -3,6 +3,7 @@ package com.example.diallerapp.activities
 import android.content.Intent
 import android.os.Bundle
 import android.telecom.TelecomManager
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts

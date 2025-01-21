@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.R
@@ -16,16 +15,10 @@ import com.example.diallerapp.databinding.ActivityCreateContactBinding
 import com.example.diallerapp.databinding.CustomAddressUiBinding
 import com.example.diallerapp.databinding.CustomBirthdayUiBinding
 import com.example.diallerapp.databinding.CustomEmailUiBinding
-import com.example.diallerapp.databinding.CustomPhoneUiBinding
-import com.example.diallerapp.databinding.CustomRecievedUiBinding
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
-import com.google.android.material.datepicker.MaterialDatePicker
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class CreateContactActivity : AppCompatActivity() {
     private var _binding: ActivityCreateContactBinding? = null
@@ -125,24 +118,19 @@ class CreateContactActivity : AppCompatActivity() {
         }
 
 
-        binding.addPhoneButton.setOnClickListener {
-            setAddPhoneButton()
-        }
+//        binding.addPhoneButton.setOnClickListener {
+//            setAddPhoneButton()
+//        }
+        setAddPhoneButton()
 
     }
 
     private fun setAddPhoneButton() {
-        val view = CustomPhoneUiBinding.inflate(layoutInflater)
-
-        val phoneNumber = "view.edPhone.editText?.text.toString()"
-        val phoneLabel = "view.phoneAutoComplete.text.toString()"
-
-
         val mutableList = mutableListOf<PhoneModel>()
-        mutableList.add(PhoneModel(phoneNumber, phoneLabel))
+        mutableList.add(PhoneModel("1233" , "home"))
 
         binding.recyclerViewAddPhone.layoutManager = LinearLayoutManager(this)
-        val phoneAdapter = PhoneAdapter()
+        val phoneAdapter = PhoneAdapter(binding)
         phoneAdapter.submitList(mutableList)
         binding.recyclerViewAddPhone.adapter = phoneAdapter
 
