@@ -45,6 +45,7 @@ class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
             }
 
 
+
             binding.edPhone.editText?.setOnFocusChangeListener { v, hasFocus ->
                 Log.d("hasfocus", "bind: $hasFocus")
                 if (hasFocus) {
