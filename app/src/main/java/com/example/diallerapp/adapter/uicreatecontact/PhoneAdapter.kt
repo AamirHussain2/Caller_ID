@@ -1,9 +1,11 @@
 package com.example.diallerapp.adapter.uicreatecontact
 
+import android.R
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -14,53 +16,105 @@ import com.example.diallerapp.model.uicreatecontact.PhoneModel
 class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
     ListAdapter<PhoneModel, PhoneAdapter.PhoneViewHolder>(PhoneDiffUtil()) {
 
+    private var selectedPosition: Int? = null
+
     inner class PhoneViewHolder(val binding: CustomPhoneUiBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: PhoneModel) {
-
-
             binding.edPhone.editText?.setText(item.phoneNumber)
-            binding.labelMenu.editText?.setText(item.phoneLabel)
-            val currentList = currentList.toMutableList()
-//            currentList.add(PhoneModel("1", "work"))
-            Log.d("CurrentList", "newList: $currentList \n size: ${currentList.size}")
-
-            binding.phoneDeleteButton.setOnClickListener {
-//                if(currentList.isNotEmpty()){
-                if(adapterPosition != -1 && currentList.isNotEmpty()){
-                    val newList = currentList.map { it.copy() } as ArrayList
-                    Log.d("PhoneAdapter", "phoneDeleteButton: $newList")
+            binding.phoneAutoComplete.setText(item.phoneLabel, false)
 
 
-                    Log.d("PhoneAdapter", "bind: if")
-                    newList.removeAt(adapterPosition)
-                    if (newList.isEmpty()) {
-                        Log.d("PhoneAdapter", "bind: currentList.isEmpty()")
-                        activityBinding.addPhoneButton.visibility = View.VISIBLE
-                    }
-                    Log.d("PhoneAdapter", "phoneDeleteButton: $newList")
-                    submitList(newList)
-                }else{
-                    Log.d("PhoneAdapter", "bind: else")
-                    activityBinding.addPhoneButton.visibility = View.VISIBLE
-//                    binding.root.visibility = View.GONE
-                }
+            val phoneLabels = itemView.resources.getStringArray(R.array.phoneTypes)
+            val adapter = ArrayAdapter(itemView.context, R.layout.simple_list_item_1, phoneLabels)
+            binding.phoneAutoComplete.setAdapter(adapter)
+
+            val defaultLabel = "Mobile"
+            binding.phoneAutoComplete.setText(defaultLabel, false)
+
+            binding.phoneAutoComplete.setOnClickListener {
+                binding.phoneAutoComplete.showDropDown()
+            }
+
+            binding.phoneAutoComplete.setOnItemClickListener { _, _, position, _ ->
+                val selectedLabel = adapter.getItem(position)
+
+                binding.phoneAutoComplete.setText(selectedLabel, false)
 
             }
 
-            binding.addPhone.setOnClickListener {
-                val newList = currentList.map { it.copy() } as ArrayList
-                Log.d("addPhone", "before newList: ${newList.size}")
-//            Log.d("PhoneAdapter", "newList: ${newList[1].phoneNumber}")
 
+            binding.edPhone.editText?.setOnFocusChangeListener { v, hasFocus ->
+                Log.d("hasfocus", "bind: $hasFocus")
+                if (hasFocus) {
+                    Log.d("hasfocus", "bind: true -> $adapterPosition")
+                    binding.labelMenu.visibility = View.VISIBLE
+                } else {
+                    Log.d("hasfocus", "bind: false -> $adapterPosition")
+                    binding.labelMenu.visibility = View.GONE
+                }
+            }
+//            binding.edPhone.editText?.setOnClickListener {
+//                updateSelectedPosition(adapterPosition, binding)
+//            }
+
+            binding.phoneDeleteButton.setOnClickListener {
+                removeItem(adapterPosition)
+            }
+
+
+            binding.labelMenu.visibility = if (item.isSelected) View.VISIBLE else View.GONE
+
+
+            activityBinding.addPhoneButton.setOnClickListener {
+                val newList = currentList.map { it.copy() } as ArrayList
+                newList.add(PhoneModel(binding.edPhone.editText?.text.toString(), binding.phoneAutoComplete.text.toString()))
+                submitList(newList)
+
+                Log.d("addPhoneButton", "submitList: $newList")
+
+                activityBinding.addPhoneItem.visibility = View.VISIBLE
+                activityBinding.addPhoneButton.visibility = View.GONE
+                binding.labelMenu.visibility = View.VISIBLE
+
+                // Set the selected position to the last item
+                selectedPosition = newList.size - 1
+//                notifyItemChanged(selectedPosition!!)
+
+            }
+
+            activityBinding.addPhoneItem.setOnClickListener {
+                val newList = currentList.map { it.copy() } as ArrayList
                 newList.add(item)
-                Log.d("addPhone", "after newList: ${newList.size}")
+                selectedPosition = null
+                binding.labelMenu.visibility = View.VISIBLE
                 submitList(newList)
             }
 
-        }
 
+
+//            activityBinding.addPhoneItem.setOnClickListener {
+//                val newList = currentList.map { it.copy(isSelected = false) } as ArrayList // Sab items ke isSelected ko false kar do
+//                newList.add(item.copy(isSelected = true)) // Naye item ko list ke last position par add karo aur uska isSelected true kar do
+//                submitList(newList)
+//
+//                val lastIndex = newList.size - 1 // List ke last index ka reference lo
+//                Log.d("addPhoneItem", "submitList: $lastIndex")
+//
+//                // Ab RecyclerView ko data ke basis par refresh karwayenge, aur last item ka label visible karenge
+//                submitList(newList.mapIndexed { index, phoneModel ->
+//                    if (index == lastIndex) {
+//                        binding.labelMenu.visibility = View.VISIBLE
+//                        phoneModel.copy(isSelected = true) // Last item ka label visible hoga
+//                    } else {
+//                        binding.labelMenu.visibility = View.GONE
+//                        phoneModel.copy(isSelected = false) // Baqi items ka label hidden hoga
+//                    }
+//                })
+//            }
+
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhoneViewHolder {
@@ -73,10 +127,47 @@ class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
     }
 
     override fun onBindViewHolder(holder: PhoneViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.bind(item)
-
+        holder.bind(getItem(position))
     }
+
+
+    private fun updateItem(position: Int, updatedItem: PhoneModel) {
+        val newList = currentList.map { it.copy() } as ArrayList
+        newList[position] = updatedItem
+        submitList(newList)
+    }
+
+    private fun removeItem(position: Int) {
+        val newList = currentList.map { it.copy() } as ArrayList
+        newList.removeAt(position)
+        submitList(newList)
+
+        if (newList.isEmpty()) {
+            activityBinding.addPhoneItem.visibility = View.GONE
+            activityBinding.addPhoneButton.visibility = View.VISIBLE
+        } else {
+            activityBinding.addPhoneItem.visibility = View.VISIBLE
+            activityBinding.addPhoneButton.visibility = View.GONE
+        }
+    }
+
+    private fun updateSelectedPosition(position: Int, binding: CustomPhoneUiBinding) {
+        val updatedList = currentList.mapIndexed { index, item ->
+            Log.d("updateSelectedPosition", "position: $position")
+            if (index == position) {
+                Log.d("updateSelectedPosition", "if: $position")
+                binding.labelMenu.visibility = View.VISIBLE
+                item.copy(isSelected = true)
+            } else {
+                Log.d("updateSelectedPosition", "else: $position")
+                binding.labelMenu.visibility = View.GONE
+                item.copy(isSelected = false)
+            }
+        }
+
+        submitList(updatedList)
+    }
+
 
     class PhoneDiffUtil : DiffUtil.ItemCallback<PhoneModel>() {
         override fun areContentsTheSame(oldItem: PhoneModel, newItem: PhoneModel): Boolean {
@@ -86,21 +177,6 @@ class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
         override fun areItemsTheSame(oldItem: PhoneModel, newItem: PhoneModel): Boolean {
             return oldItem == newItem
         }
-
     }
 }
 
-
-//        holder.binding.phoneAutoComplete.setAdapter(adapter)
-
-//        // Handling default selection
-//        val defaultPosition = adapter.getPosition("Mobile")
-//        Log.d("PhoneAdapter", "defaultPosition: $defaultPosition")
-//        if (defaultPosition >= 0) {
-//            val defaultValue = adapter.getItem(defaultPosition) ?: "Unknown"
-//            holder.binding.phoneAutoComplete.setText(defaultValue, false)
-//            holder.binding.phoneAutoComplete.setSelection(defaultPosition)
-//        } else {
-//            // Handle invalid position
-//            holder.binding.phoneAutoComplete.setText("Unknown", false)
-//        }

@@ -15,6 +15,7 @@ import com.example.diallerapp.databinding.ActivityCreateContactBinding
 import com.example.diallerapp.databinding.CustomAddressUiBinding
 import com.example.diallerapp.databinding.CustomBirthdayUiBinding
 import com.example.diallerapp.databinding.CustomEmailUiBinding
+import com.example.diallerapp.databinding.CustomPhoneUiBinding
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
@@ -24,7 +25,7 @@ class CreateContactActivity : AppCompatActivity() {
     private var _binding: ActivityCreateContactBinding? = null
     private val binding get() = _binding!!
 
-    lateinit var adapter: ArrayAdapter<String>
+//    lateinit var adapter: ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +34,14 @@ class CreateContactActivity : AppCompatActivity() {
 
         binding.crossButton.setOnClickListener { finish() }
 
-        val phoneLabels = resources.getStringArray(R.array.phoneLabel)
-        Log.d("phoneLabels", phoneLabels.get(0))
-
-        adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            phoneLabels
-        )
-
-        Log.d("adapter", "adapter: ${adapter.getItem(0)}")
+//        val phoneLabels = resources.getStringArray(R.array.phoneLabel)
+//        Log.d("phoneLabels", phoneLabels.get(0))
+//
+//        adapter = ArrayAdapter(
+//            this,
+//            android.R.layout.simple_list_item_1,
+//            phoneLabels
+//        )
 
         binding.addEmailButton.setOnClickListener {
 
@@ -57,60 +56,61 @@ class CreateContactActivity : AppCompatActivity() {
 
 
             binding.recyclerViewAddEmail.layoutManager = LinearLayoutManager(this)
-            val emailAdapter = EmailAdapter()
+            val emailAdapter = EmailAdapter(binding)
             emailAdapter.submitList(mutableList)
             binding.recyclerViewAddEmail.adapter = emailAdapter
 
             binding.recyclerViewAddEmail.visibility = View.VISIBLE
+            binding.addEmailItem.visibility = View.VISIBLE
             binding.addEmailButton.visibility = View.GONE
 
         }
 
         binding.addAddressButton.setOnClickListener {
 
-            val view = CustomAddressUiBinding.inflate(layoutInflater)
-
-            val address = view.edAddress.editText?.text.toString()
-            val addressLabel = view.addressAutoCompleteLabel.text.toString()
+//            val view = CustomAddressUiBinding.inflate(layoutInflater)
+//
+//            val address = view.edAddress.editText?.text.toString()
+//            val addressLabel = view.addressAutoCompleteLabel.text.toString()
 
             val mutableList = mutableListOf<AddressModel>()
-            mutableList.add(AddressModel(address, addressLabel))
+            mutableList.add(AddressModel("", ""))
 
-            val addressAdapter = AddressAdapter()
+            val addressAdapter = AddressAdapter(binding)
             binding.recyclerViewAddAddress.layoutManager = LinearLayoutManager(this)
             addressAdapter.submitList(mutableList)
             binding.recyclerViewAddAddress.adapter = addressAdapter
 
             binding.recyclerViewAddAddress.visibility = View.VISIBLE
             binding.addAddressButton.visibility = View.GONE
+            binding.addAddressItem.visibility = View.VISIBLE
 
         }
 
-        binding.addBirthButton.setOnClickListener {
+        binding.addBirthdayButton.setOnClickListener {
 
-            val view = CustomBirthdayUiBinding.inflate(layoutInflater)
-            Log.d("AddBirthButton", "Button Clicked: $view")
+//            val view = CustomBirthdayUiBinding.inflate(layoutInflater)
+//            Log.d("AddBirthButton", "Button Clicked: $view")
+//
+//            val date = view.autoCompleteDatePicker.text.toString()
+//            val birthdayLabel = view.autoCompleteTextView.text.toString()
 
-            val date = view.autoCompleteDatePicker.text.toString()
-            val birthdayLabel = view.autoCompleteTextView.text.toString()
-
-            Log.d("AddBirthButton", "date: $date")
-            Log.d("AddBirthButton", "birthdayLabel: $birthdayLabel")
+//            Log.d("AddBirthButton", "date: $date")
+//            Log.d("AddBirthButton", "birthdayLabel: $birthdayLabel")
 
             val mutableList = mutableListOf<BirthdayModel>()
-            mutableList.add(BirthdayModel(date, birthdayLabel))
+            mutableList.add(BirthdayModel("", ""))
 
-            val birthdayAdapter = BirthdayAdapter()
+            val birthdayAdapter = BirthdayAdapter(binding)
             binding.recyclerViewAddBirthday.layoutManager = LinearLayoutManager(this)
             birthdayAdapter.submitList(mutableList)
             binding.recyclerViewAddBirthday.adapter = birthdayAdapter
 
             binding.recyclerViewAddBirthday.visibility = View.VISIBLE
-            binding.addBirthButton.visibility = View.GONE
-
+            binding.addBirthdayButton.visibility = View.GONE
+            binding.addBirthdayItem.visibility = View.VISIBLE
         }
 
-//        setAddPhoneButton()
 
         binding.addLabelButton.setOnClickListener {
             binding.addLabelButton.visibility = View.GONE
@@ -118,23 +118,31 @@ class CreateContactActivity : AppCompatActivity() {
         }
 
 
-//        binding.addPhoneButton.setOnClickListener {
-//            setAddPhoneButton()
-//        }
         setAddPhoneButton()
 
     }
 
     private fun setAddPhoneButton() {
+//        val view = CustomPhoneUiBinding.inflate(layoutInflater)
+//
+//        val phoneNumber = view.edPhone.editText?.text.toString()
+//        val phoneLabelText = view.phoneAutoComplete.text.toString()
+
+
         val mutableList = mutableListOf<PhoneModel>()
-        mutableList.add(PhoneModel("1233" , "home"))
+        mutableList.add(PhoneModel("" , ""))
 
         binding.recyclerViewAddPhone.layoutManager = LinearLayoutManager(this)
+
+
         val phoneAdapter = PhoneAdapter(binding)
+
+
         phoneAdapter.submitList(mutableList)
         binding.recyclerViewAddPhone.adapter = phoneAdapter
 
         binding.recyclerViewAddPhone.visibility = View.VISIBLE
+        binding.addPhoneItem.visibility = View.VISIBLE
         binding.addPhoneButton.visibility = View.GONE
     }
 
