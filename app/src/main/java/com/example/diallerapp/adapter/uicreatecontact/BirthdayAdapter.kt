@@ -1,6 +1,7 @@
 package com.example.diallerapp.adapter.uicreatecontact
 
 import android.R
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,12 +16,13 @@ import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding) :
     ListAdapter<BirthdayModel, BirthdayAdapter.BirthdayViewHolder>(BirthdayDiffUtil()) {
 
-    private var selectedPosition: Int? = null
+//    private var selectedPosition: Int? = null
 
     inner class BirthdayViewHolder(val binding: CustomBirthdayUiBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: BirthdayModel) {
+            Log.d("datePicker", "Binding item: $item.birthdayDatePicker")
             binding.birthdayAutoCompleteDatePicker.setText(item.birthdayDatePicker)
             binding.birthdayAutoCompleteLabel.setText(item.birthdayLabel, false)
 
@@ -47,7 +49,7 @@ class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding)
 
 
             binding.birthdayAutoCompleteDatePicker.setOnClickListener {
-                updateSelectedPosition(adapterPosition, binding)
+//                updateSelectedPosition(adapterPosition, binding)
             }
 
             binding.birthdayDeleteButton.setOnClickListener {
@@ -55,11 +57,11 @@ class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding)
             }
 
 
-            if (adapterPosition == selectedPosition) {
-                binding.labelMenu.visibility = View.VISIBLE
-            } else {
-                binding.labelMenu.visibility = View.GONE
-            }
+//            if (adapterPosition == selectedPosition) {
+//                binding.labelMenu.visibility = View.VISIBLE
+//            } else {
+//                binding.labelMenu.visibility = View.GONE
+//            }
 
             activityBinding.addBirthdayButton.setOnClickListener {
                 val newList = currentList.map { it.copy() } as ArrayList
@@ -72,7 +74,7 @@ class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding)
                 binding.labelMenu.visibility = View.VISIBLE
 
                 // Set the selected position to the last item
-                selectedPosition = newList.size - 1
+//                selectedPosition = newList.size - 1
 //                notifyItemChanged(selectedPosition!!)
 
             }
@@ -101,13 +103,6 @@ class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding)
         holder.bind(getItem(position))
     }
 
-
-//    private fun updateItem(position: Int, updatedItem: BirthdayModel) {
-//        val newList = currentList.map { it.copy() } as ArrayList
-//        newList[position] = updatedItem
-//        submitList(newList)
-//    }
-
     private fun removeItem(position: Int) {
         val newList = currentList.map { it.copy() } as ArrayList
         newList.removeAt(position)
@@ -122,26 +117,26 @@ class BirthdayAdapter(private val activityBinding: ActivityCreateContactBinding)
         }
     }
 
-    private fun updateSelectedPosition(position: Int, binding: CustomBirthdayUiBinding) {
-
-        val previousSelectedPosition = selectedPosition
-//        selectedPosition = null
-        selectedPosition = position
-
-        val updatedList = currentList.mapIndexed { index, item ->
-            if (index == position) {
-                binding.labelMenu.visibility = View.VISIBLE
-                item.copy()
-            } else if (index == previousSelectedPosition) {
-                binding.labelMenu.visibility = View.GONE
-                item.copy()
-            } else {
-                item
-            }
-        }
-
-        submitList(updatedList)
-    }
+//    private fun updateSelectedPosition(position: Int, binding: CustomBirthdayUiBinding) {
+//
+//        val previousSelectedPosition = selectedPosition
+////        selectedPosition = null
+//        selectedPosition = position
+//
+//        val updatedList = currentList.mapIndexed { index, item ->
+//            if (index == position) {
+//                binding.labelMenu.visibility = View.VISIBLE
+//                item.copy()
+//            } else if (index == previousSelectedPosition) {
+//                binding.labelMenu.visibility = View.GONE
+//                item.copy()
+//            } else {
+//                item
+//            }
+//        }
+//
+//        submitList(updatedList)
+//    }
 
 
     class BirthdayDiffUtil : DiffUtil.ItemCallback<BirthdayModel>() {

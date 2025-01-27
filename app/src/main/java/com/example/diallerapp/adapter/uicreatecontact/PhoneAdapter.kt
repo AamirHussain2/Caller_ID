@@ -16,7 +16,7 @@ import com.example.diallerapp.model.uicreatecontact.PhoneModel
 class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
     ListAdapter<PhoneModel, PhoneAdapter.PhoneViewHolder>(PhoneDiffUtil()) {
 
-    private var selectedPosition: Int? = null
+    var selectedPosition: Int? = null
 
     inner class PhoneViewHolder(val binding: CustomPhoneUiBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -68,51 +68,25 @@ class PhoneAdapter(private val activityBinding: ActivityCreateContactBinding) :
             binding.labelMenu.visibility = if (item.isSelected) View.VISIBLE else View.GONE
 
 
-            activityBinding.addPhoneButton.setOnClickListener {
-                val newList = currentList.map { it.copy() } as ArrayList
-                newList.add(PhoneModel(binding.edPhone.editText?.text.toString(), binding.phoneAutoComplete.text.toString()))
-                submitList(newList)
-
-                Log.d("addPhoneButton", "submitList: $newList")
-
-                activityBinding.addPhoneItem.visibility = View.VISIBLE
-                activityBinding.addPhoneButton.visibility = View.GONE
-                binding.labelMenu.visibility = View.VISIBLE
-
-                // Set the selected position to the last item
-                selectedPosition = newList.size - 1
-//                notifyItemChanged(selectedPosition!!)
-
-            }
-
-            activityBinding.addPhoneItem.setOnClickListener {
-                val newList = currentList.map { it.copy() } as ArrayList
-                newList.add(item)
-                selectedPosition = null
-                binding.labelMenu.visibility = View.VISIBLE
-                submitList(newList)
-            }
-
-
-
-//            activityBinding.addPhoneItem.setOnClickListener {
-//                val newList = currentList.map { it.copy(isSelected = false) } as ArrayList // Sab items ke isSelected ko false kar do
-//                newList.add(item.copy(isSelected = true)) // Naye item ko list ke last position par add karo aur uska isSelected true kar do
+//            activityBinding.addPhoneButton.setOnClickListener {
+//                val newList = currentList.map { it.copy() } as ArrayList
+//                newList.add(PhoneModel(binding.edPhone.editText?.text.toString(), binding.phoneAutoComplete.text.toString()))
 //                submitList(newList)
 //
-//                val lastIndex = newList.size - 1 // List ke last index ka reference lo
-//                Log.d("addPhoneItem", "submitList: $lastIndex")
+//                activityBinding.addPhoneItem.visibility = View.VISIBLE
+//                activityBinding.addPhoneButton.visibility = View.GONE
+//                binding.labelMenu.visibility = View.VISIBLE
 //
-//                // Ab RecyclerView ko data ke basis par refresh karwayenge, aur last item ka label visible karenge
-//                submitList(newList.mapIndexed { index, phoneModel ->
-//                    if (index == lastIndex) {
-//                        binding.labelMenu.visibility = View.VISIBLE
-//                        phoneModel.copy(isSelected = true) // Last item ka label visible hoga
-//                    } else {
-//                        binding.labelMenu.visibility = View.GONE
-//                        phoneModel.copy(isSelected = false) // Baqi items ka label hidden hoga
-//                    }
-//                })
+//                selectedPosition = newList.size - 1
+////                notifyItemChanged(selectedPosition!!)
+//            }
+
+//            activityBinding.addPhoneItem.setOnClickListener {
+//                val newList = currentList.map { it.copy() } as ArrayList
+//                newList.add(item)
+//                selectedPosition = null
+//                binding.labelMenu.visibility = View.VISIBLE
+//                submitList(newList)
 //            }
 
         }

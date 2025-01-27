@@ -2,8 +2,8 @@ package com.example.diallerapp.activities
 
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.R
@@ -12,14 +12,14 @@ import com.example.diallerapp.adapter.uicreatecontact.BirthdayAdapter
 import com.example.diallerapp.adapter.uicreatecontact.EmailAdapter
 import com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter
 import com.example.diallerapp.databinding.ActivityCreateContactBinding
-import com.example.diallerapp.databinding.CustomAddressUiBinding
-import com.example.diallerapp.databinding.CustomBirthdayUiBinding
 import com.example.diallerapp.databinding.CustomEmailUiBinding
 import com.example.diallerapp.databinding.CustomPhoneUiBinding
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
+import com.example.diallerapp.utils.DialogUtils
+import com.google.android.material.datepicker.MaterialDatePicker
 
 class CreateContactActivity : AppCompatActivity() {
     private var _binding: ActivityCreateContactBinding? = null
@@ -89,24 +89,22 @@ class CreateContactActivity : AppCompatActivity() {
 
         binding.addBirthdayButton.setOnClickListener {
 
-//            val view = CustomBirthdayUiBinding.inflate(layoutInflater)
-//            Log.d("AddBirthButton", "Button Clicked: $view")
-//
-//            val date = view.autoCompleteDatePicker.text.toString()
-//            val birthdayLabel = view.autoCompleteTextView.text.toString()
-
-//            Log.d("AddBirthButton", "date: $date")
-//            Log.d("AddBirthButton", "birthdayLabel: $birthdayLabel")
+            DialogUtils.showDialogDatePicker(supportFragmentManager)
 
             val mutableList = mutableListOf<BirthdayModel>()
-            mutableList.add(BirthdayModel("", ""))
-
             val birthdayAdapter = BirthdayAdapter(binding)
-            binding.recyclerViewAddBirthday.layoutManager = LinearLayoutManager(this)
-            birthdayAdapter.submitList(mutableList)
-            binding.recyclerViewAddBirthday.adapter = birthdayAdapter
 
+            DialogUtils.selectedDate.observe(this) { selectedDate ->
+                mutableList.add(BirthdayModel(selectedDate, ""))
+                birthdayAdapter.submitList(mutableList)
+
+            }
+
+            binding.recyclerViewAddBirthday.layoutManager = LinearLayoutManager(this)
+//            birthdayAdapter.submitList(mutableList)
+            binding.recyclerViewAddBirthday.adapter = birthdayAdapter
             binding.recyclerViewAddBirthday.visibility = View.VISIBLE
+
             binding.addBirthdayButton.visibility = View.GONE
             binding.addBirthdayItem.visibility = View.VISIBLE
         }
@@ -117,26 +115,20 @@ class CreateContactActivity : AppCompatActivity() {
             binding.addToLabelConstraintLayout.visibility = View.VISIBLE
         }
 
-
         setAddPhoneButton()
 
     }
 
     private fun setAddPhoneButton() {
-//        val view = CustomPhoneUiBinding.inflate(layoutInflater)
-//
-//        val phoneNumber = view.edPhone.editText?.text.toString()
-//        val phoneLabelText = view.phoneAutoComplete.text.toString()
 
+        val view = CustomPhoneUiBinding.inflate(layoutInflater)
 
         val mutableList = mutableListOf<PhoneModel>()
         mutableList.add(PhoneModel("" , ""))
 
         binding.recyclerViewAddPhone.layoutManager = LinearLayoutManager(this)
 
-
         val phoneAdapter = PhoneAdapter(binding)
-
 
         phoneAdapter.submitList(mutableList)
         binding.recyclerViewAddPhone.adapter = phoneAdapter
@@ -144,6 +136,27 @@ class CreateContactActivity : AppCompatActivity() {
         binding.recyclerViewAddPhone.visibility = View.VISIBLE
         binding.addPhoneItem.visibility = View.VISIBLE
         binding.addPhoneButton.visibility = View.GONE
+
+
+        binding.addPhoneButton.setOnClickListener {
+            val newList = phoneAdapter.currentList.map { it.copy() } as ArrayList
+            newList.add(PhoneModel("", ""))
+            phoneAdapter.submitList(newList)
+
+            binding.addPhoneItem.visibility = View.VISIBLE
+            binding.addPhoneButton.visibility = View.GONE
+            view.labelMenu.visibility = View.VISIBLE
+
+            phoneAdapter.selectedPosition = newList.size - 1
+        }
+
+        binding.addPhoneItem.setOnClickListener {
+            val newList = phoneAdapter.currentList.map { it.copy() } as ArrayList
+            newList.add(PhoneModel("", ""))
+            phoneAdapter.selectedPosition = null
+            view.labelMenu.visibility = View.VISIBLE
+            phoneAdapter.submitList(newList)
+        }
     }
 
     override fun onDestroy() {
