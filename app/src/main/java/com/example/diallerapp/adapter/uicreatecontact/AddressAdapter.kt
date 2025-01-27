@@ -44,8 +44,6 @@ class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) 
             }
 
 
-
-
             binding.edAddress.editText?.setOnClickListener {
                 updateSelectedPosition(adapterPosition, binding)
             }
@@ -77,14 +75,14 @@ class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) 
 //
 //            }
 
-            activityBinding.addAddressItem.setOnClickListener {
-                val newList = currentList.map { it.copy() } as ArrayList
-                newList.add(item)
-//                selectedPosition = null
-                binding.labelMenu.visibility = View.VISIBLE
-                submitList(newList)
-
-            }
+//            activityBinding.addAddressItem.setOnClickListener {
+//                val newList = currentList.map { it.copy() } as ArrayList
+//                newList.add(item)
+////                selectedPosition = null
+//                binding.labelMenu.visibility = View.VISIBLE
+//                submitList(newList)
+//
+//            }
         }
     }
 
@@ -100,7 +98,6 @@ class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) 
     override fun onBindViewHolder(holder: AddressViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
-
 
 
     private fun removeItem(position: Int) {
