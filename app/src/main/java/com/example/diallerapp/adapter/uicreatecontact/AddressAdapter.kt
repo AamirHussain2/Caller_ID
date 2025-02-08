@@ -1,6 +1,5 @@
 package com.example.diallerapp.adapter.uicreatecontact
 
-import android.R
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,90 +7,72 @@ import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import android.R
+import android.util.Log
+import androidx.core.widget.addTextChangedListener
 import com.example.diallerapp.databinding.ActivityCreateContactBinding
 import com.example.diallerapp.databinding.CustomAddressUiBinding
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 
-class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) :
+class AddressAdapter(val activityAddAddressBinding: ActivityCreateContactBinding) :
     ListAdapter<AddressModel, AddressAdapter.AddressViewHolder>(AddressDiffUtil()) {
 
-    private var selectedPosition: Int? = null
-
-    inner class AddressViewHolder(val binding: CustomAddressUiBinding) :
+    inner class AddressViewHolder(private val binding: CustomAddressUiBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: AddressModel) {
-            binding.edAddress.editText?.setText(item.address)
-            binding.addressAutoCompleteLabel.setText(item.addressLabel, false)
+            // Set initial values from the AddressModel
+            binding.edAddress.editText?.setText(item.address).toString()
+            binding.addressAutoCompleteLabel.setText(item.addressLabel, false).toString()
 
+            Log.d("AddressAdapter", "address: ${item.address}, addressLabel: ${item.addressLabel}")
 
+            binding.labelMenu.visibility = if (item.isLabelVisible) View.VISIBLE else View.GONE
+
+            // Set dropdown menu for address labels
             val addressLabels = itemView.resources.getStringArray(R.array.emailAddressTypes)
             val adapter = ArrayAdapter(itemView.context, R.layout.simple_list_item_1, addressLabels)
             binding.addressAutoCompleteLabel.setAdapter(adapter)
 
-            val defaultLabel = "Home"
-            binding.addressAutoCompleteLabel.setText(defaultLabel, false)
-
-            binding.addressAutoCompleteLabel.setOnClickListener {
-                binding.addressAutoCompleteLabel.showDropDown()
-            }
-
+            // Update AddressModel when address label is selected
             binding.addressAutoCompleteLabel.setOnItemClickListener { _, _, position, _ ->
                 val selectedLabel = adapter.getItem(position)
-
+                item.addressLabel = selectedLabel ?: ""
                 binding.addressAutoCompleteLabel.setText(selectedLabel, false)
-
             }
 
-
-            binding.edAddress.editText?.setOnClickListener {
-                updateSelectedPosition(adapterPosition, binding)
+            // Update Address Model when address is edited
+            binding.edAddress.editText?.addTextChangedListener {
+                item.address = it.toString()
             }
 
+            // Handle focus changes to toggle label visibility
+            binding.edAddress.editText?.setOnFocusChangeListener { _, hasFocus ->
+                item.isLabelVisible = hasFocus
+                binding.labelMenu.visibility = if (hasFocus) View.VISIBLE else View.GONE
+            }
+
+            // Delete button logic
             binding.addressDeleteButton.setOnClickListener {
-                removeItem(adapterPosition)
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val newList = currentList.toMutableList()
+                    newList.removeAt(position)
+                    submitList(newList)
+
+                    if (newList.isEmpty()) {
+                        activityAddAddressBinding.addAddressButton.visibility = View.VISIBLE
+                        activityAddAddressBinding.addAddressItem.visibility = View.GONE
+                    } else {
+                        activityAddAddressBinding.addAddressButton.visibility = View.GONE
+                    }
+                }
             }
-
-
-            if (adapterPosition == selectedPosition) {
-                binding.labelMenu.visibility = View.VISIBLE
-            } else {
-                binding.labelMenu.visibility = View.GONE
-            }
-
-//            activityBinding.addAddressButton.setOnClickListener {
-//                val newList = currentList.map { it.copy() } as ArrayList
-//                newList.add(item)
-//                submitList(newList)
-//
-//
-//                activityBinding.addAddressItem.visibility = View.VISIBLE
-//                activityBinding.addAddressButton.visibility = View.GONE
-//                binding.labelMenu.visibility = View.VISIBLE
-//
-//                // Set the selected position to the last item
-//                selectedPosition = newList.size - 1
-////                notifyItemChanged(selectedPosition!!)
-//
-//            }
-
-//            activityBinding.addAddressItem.setOnClickListener {
-//                val newList = currentList.map { it.copy() } as ArrayList
-//                newList.add(item)
-////                selectedPosition = null
-//                binding.labelMenu.visibility = View.VISIBLE
-//                submitList(newList)
-//
-//            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AddressViewHolder {
-        val binding = CustomAddressUiBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
+        val binding = CustomAddressUiBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AddressViewHolder(binding)
     }
 
@@ -99,45 +80,11 @@ class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) 
         holder.bind(getItem(position))
     }
 
-
-    private fun removeItem(position: Int) {
-        val newList = currentList.map { it.copy() } as ArrayList
-        newList.removeAt(position)
-        submitList(newList)
-
-        if (newList.isEmpty()) {
-            activityBinding.addAddressItem.visibility = View.GONE
-            activityBinding.addAddressButton.visibility = View.VISIBLE
-        } else {
-            activityBinding.addAddressItem.visibility = View.VISIBLE
-            activityBinding.addAddressButton.visibility = View.GONE
-        }
-    }
-
-    private fun updateSelectedPosition(position: Int, binding: CustomAddressUiBinding) {
-
-        val previousSelectedPosition = selectedPosition
-        selectedPosition = position
-
-        val updatedList = currentList.mapIndexed { index, item ->
-            if (index == position) {
-                binding.labelMenu.visibility = View.VISIBLE
-                item.copy()
-            } else if (index == previousSelectedPosition) {
-                binding.labelMenu.visibility = View.GONE
-                item.copy()
-            } else {
-                item
-            }
-        }
-
-        submitList(updatedList)
-    }
-
-
     class AddressDiffUtil : DiffUtil.ItemCallback<AddressModel>() {
         override fun areContentsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
-            return oldItem.address == newItem.address && oldItem.addressLabel == newItem.addressLabel
+            return oldItem.address == newItem.address &&
+                    oldItem.addressLabel == newItem.addressLabel &&
+                    oldItem.isLabelVisible == newItem.isLabelVisible
         }
 
         override fun areItemsTheSame(oldItem: AddressModel, newItem: AddressModel): Boolean {
@@ -145,4 +92,3 @@ class AddressAdapter(private val activityBinding: ActivityCreateContactBinding) 
         }
     }
 }
-

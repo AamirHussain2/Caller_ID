@@ -27,9 +27,5 @@ class DialogUtils {
 
         }
 
-//        fun getSelectedDate(): String? {
-//            Log.d("DatePickerActivity", "Getting selected datelkjlkjlkjlj: $selectedDate")
-//            return selectedDate
-//        }
     }
 }

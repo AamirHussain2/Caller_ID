@@ -15,7 +15,6 @@ import com.example.diallerapp.databinding.ActivityMainBinding
 import com.example.diallerapp.databinding.FragmentDiallerBinding
 import com.example.diallerapp.utils.DiallerUI
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.search.SearchView
 
 class MainActivity : AppCompatActivity() {
 

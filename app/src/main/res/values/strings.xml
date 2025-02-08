@@ -4,17 +4,13 @@
     <string name="call_info">%1$s\n%2$s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="please_enter_label_name">please enter label name</string>
 
 
     <!-- TODO: Add your menu items here -->
-    <string-array name="phoneLabel">
-        <item>Mobile</item>
-        <item>Work</item>
-        <item>Home</item>
-        <item>Main</item>
-        <item>Work fax</item>
-        <item>Home fax</item>
-        <item>Pager</item>
+    <string-array name="birthdayLabel">
+        <item>Birthday</item>
+        <item>Anniversary</item>
         <item>Other</item>
         <item>Custom</item>
     </string-array>

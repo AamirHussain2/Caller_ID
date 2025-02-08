@@ -1,166 +1,607 @@
 package com.example.diallerapp.activities
 
+import android.Manifest
+import android.app.Dialog
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.R
+import com.example.diallerapp.adapter.uicreatecontact.AddToLabelAdapter
 import com.example.diallerapp.adapter.uicreatecontact.AddressAdapter
 import com.example.diallerapp.adapter.uicreatecontact.BirthdayAdapter
 import com.example.diallerapp.adapter.uicreatecontact.EmailAdapter
 import com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter
 import com.example.diallerapp.databinding.ActivityCreateContactBinding
-import com.example.diallerapp.databinding.CustomEmailUiBinding
-import com.example.diallerapp.databinding.CustomPhoneUiBinding
+import com.example.diallerapp.databinding.CustomAddToLabelDialogBinding
+import com.example.diallerapp.model.uicreatecontact.AddToLabelModel
+
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
 import com.example.diallerapp.utils.DialogUtils
-import com.google.android.material.datepicker.MaterialDatePicker
+import com.example.diallerapp.utils.SaveContactData
+
 
 class CreateContactActivity : AppCompatActivity() {
     private var _binding: ActivityCreateContactBinding? = null
     private val binding get() = _binding!!
 
-//    lateinit var adapter: ArrayAdapter<String>
+    private val permissions = arrayOf(
+        Manifest.permission.READ_CONTACTS,
+        Manifest.permission.WRITE_CONTACTS,
+        Manifest.permission.READ_PHONE_STATE
+    )
+
+    private lateinit var phoneAdapter: PhoneAdapter
+    private lateinit var emailAdapter: EmailAdapter
+    private lateinit var addressAdapter: AddressAdapter
+    private lateinit var birthdayAdapter: BirthdayAdapter
+    private lateinit var firstName: String
+    private lateinit var sureName: String
+    private lateinit var companyName: String
+    private lateinit var labelName: List<String>
+
+    private val mutableList = mutableListOf<AddToLabelModel>()
+
+    private lateinit var dialog: Dialog
+    private lateinit var phoneList: List<PhoneModel>
+    private lateinit var emailList: List<EmailModel>
+    private lateinit var addressList: List<AddressModel>
+    private lateinit var birthdayList: List<BirthdayModel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityCreateContactBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        birthdayAdapter = BirthdayAdapter(binding, supportFragmentManager, this)
+        addressAdapter = AddressAdapter(binding)
+        phoneAdapter = PhoneAdapter(binding)
+        emailAdapter = EmailAdapter(binding)
+
+        getIntentData()
+
+
         binding.crossButton.setOnClickListener { finish() }
 
-//        val phoneLabels = resources.getStringArray(R.array.phoneLabel)
-//        Log.d("phoneLabels", phoneLabels.get(0))
-//
-//        adapter = ArrayAdapter(
-//            this,
-//            android.R.layout.simple_list_item_1,
-//            phoneLabels
-//        )
+        binding.addLabelButton.setOnClickListener {
 
-        binding.addEmailButton.setOnClickListener {
+            Log.d("CreateContactActivity", "mutableList: $mutableList")
 
-            val view = CustomEmailUiBinding.inflate(layoutInflater)
+            dialog = Dialog(this)
+            val dialogBinding = CustomAddToLabelDialogBinding.inflate(LayoutInflater.from(this))
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            dialog.setContentView(dialogBinding.root)
 
-            val email = view.edEmail.editText?.text.toString()
-            val emailLabel = view.emailAutoCompleteLabel.text.toString()
-
-            val mutableList = mutableListOf<EmailModel>()
-            mutableList.add(EmailModel(email, emailLabel))
-            Log.d("mutableList", "mutableList: $mutableList")
+            dialogBinding.btnOk.isEnabled = false
 
 
-            binding.recyclerViewAddEmail.layoutManager = LinearLayoutManager(this)
-            val emailAdapter = EmailAdapter(binding)
-            emailAdapter.submitList(mutableList)
-            binding.recyclerViewAddEmail.adapter = emailAdapter
+            dialogBinding.recyclerViewAddToLabelDialog.layoutManager = LinearLayoutManager(this)
 
-            binding.recyclerViewAddEmail.visibility = View.VISIBLE
-            binding.addEmailItem.visibility = View.VISIBLE
-            binding.addEmailButton.visibility = View.GONE
+            val addToLabelAdapter = AddToLabelAdapter(this)
 
-        }
+            mutableList.add(AddToLabelModel("item 1"))
+            mutableList.add(AddToLabelModel("item 2"))
+            mutableList.add(AddToLabelModel("item 3"))
+            mutableList.add(AddToLabelModel("item 4"))
+            mutableList.add(AddToLabelModel("item 5"))
+            mutableList.add(AddToLabelModel("item 6"))
+            mutableList.add(AddToLabelModel("item 7"))
+            mutableList.add(AddToLabelModel("item 8"))
+            mutableList.add(AddToLabelModel("item 9"))
+            mutableList.add(AddToLabelModel("item 10"))
 
-        binding.addAddressButton.setOnClickListener {
+            dialogBinding.recyclerViewAddToLabelDialog.adapter = addToLabelAdapter
+            addToLabelAdapter.submitList(mutableList)
 
-//            val view = CustomAddressUiBinding.inflate(layoutInflater)
-//
-//            val address = view.edAddress.editText?.text.toString()
-//            val addressLabel = view.addressAutoCompleteLabel.text.toString()
-
-            val mutableList = mutableListOf<AddressModel>()
-            mutableList.add(AddressModel("", ""))
-
-            val addressAdapter = AddressAdapter(binding)
-            binding.recyclerViewAddAddress.layoutManager = LinearLayoutManager(this)
-            addressAdapter.submitList(mutableList)
-            binding.recyclerViewAddAddress.adapter = addressAdapter
-
-            binding.recyclerViewAddAddress.visibility = View.VISIBLE
-            binding.addAddressButton.visibility = View.GONE
-            binding.addAddressItem.visibility = View.VISIBLE
-
-        }
-
-        binding.addBirthdayButton.setOnClickListener {
-
-            DialogUtils.showDialogDatePicker(supportFragmentManager)
-
-            val mutableList = mutableListOf<BirthdayModel>()
-            val birthdayAdapter = BirthdayAdapter(binding)
-
-            DialogUtils.selectedDate.observe(this) { selectedDate ->
-                mutableList.add(BirthdayModel(selectedDate, ""))
-                birthdayAdapter.submitList(mutableList)
-
+            // Function to check if any item is checked
+            fun updateOkButtonState() {
+                val isAnyItemChecked = addToLabelAdapter.currentList.any { it.isChecked }
+                dialogBinding.btnOk.isEnabled = isAnyItemChecked
             }
 
-            binding.recyclerViewAddBirthday.layoutManager = LinearLayoutManager(this)
-//            birthdayAdapter.submitList(mutableList)
-            binding.recyclerViewAddBirthday.adapter = birthdayAdapter
-            binding.recyclerViewAddBirthday.visibility = View.VISIBLE
+            // Listener for checkbox state changes
+            addToLabelAdapter.setOnItemCheckedChangeListener {
+                updateOkButtonState()
+            }
 
-            binding.addBirthdayButton.visibility = View.GONE
-            binding.addBirthdayItem.visibility = View.VISIBLE
+            dialogBinding.btnOk.setOnClickListener {
+
+                val selectedText = addToLabelAdapter.currentList.filter { it.isChecked }
+                    .joinToString(", ") { it.textViewLabel }
+
+                binding.autoComplete.setText(selectedText) // EditText me text set karna
+
+                binding.addToLabelConstraintLayout.visibility = View.VISIBLE
+                binding.addLabelButton.visibility = View.GONE
+
+                dialog.dismiss()
+            }
+
+            dialogBinding.btnCancel.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            Log.d("CreateContactActivity", "addToLabelAdapter: ${addToLabelAdapter.currentList}")
+
+            dialog.show()
+
         }
 
-
-        binding.addLabelButton.setOnClickListener {
-            binding.addLabelButton.visibility = View.GONE
-            binding.addToLabelConstraintLayout.visibility = View.VISIBLE
+        binding.autoComplete.setOnClickListener {
+            if (::dialog.isInitialized) {
+                dialog.show()
+            }
         }
+
+        binding.addToLabelDelete.setOnClickListener {
+            binding.addLabelButton.visibility = View.VISIBLE
+            binding.addToLabelConstraintLayout.visibility = View.GONE
+        }
+
 
         setAddPhoneButton()
 
+        setAddEmailButton()
+
+        setAddAddressButton()
+
+        setAddBirthdayButton()
+
+        setSaveButton()
+
     }
+
+    private fun getIntentData() {
+
+        // get intent data for text field
+        intent.apply {
+            firstName = getStringExtra("contact_name") ?: ""
+            sureName = getStringExtra("contact_sureName") ?: ""
+            companyName = getStringExtra("contact_company") ?: ""
+
+            // set data with view
+            binding.apply {
+                edFirstName.editText?.setText(firstName)
+                edSureName.editText?.setText(sureName)
+                edCompany.editText?.setText(companyName)
+            }
+        }
+
+        // get intent data for recycler view
+        phoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as List<PhoneModel>
+        emailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as List<EmailModel>
+        addressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as List<AddressModel>
+        birthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as List<BirthdayModel>
+
+
+    }
+
 
     private fun setAddPhoneButton() {
 
-        val view = CustomPhoneUiBinding.inflate(layoutInflater)
+        val phoneMutableList = mutableListOf<PhoneModel>()
 
-        val mutableList = mutableListOf<PhoneModel>()
-        mutableList.add(PhoneModel("" , ""))
+        if (phoneList.isNotEmpty()) {
 
-        binding.recyclerViewAddPhone.layoutManager = LinearLayoutManager(this)
+            phoneMutableList.addAll(phoneList.map { it.copy(isLabelVisible = true) })
 
-        val phoneAdapter = PhoneAdapter(binding)
-
-        phoneAdapter.submitList(mutableList)
-        binding.recyclerViewAddPhone.adapter = phoneAdapter
-
-        binding.recyclerViewAddPhone.visibility = View.VISIBLE
-        binding.addPhoneItem.visibility = View.VISIBLE
-        binding.addPhoneButton.visibility = View.GONE
-
-
-        binding.addPhoneButton.setOnClickListener {
-            val newList = phoneAdapter.currentList.map { it.copy() } as ArrayList
-            newList.add(PhoneModel("", ""))
-            phoneAdapter.submitList(newList)
-
-            binding.addPhoneItem.visibility = View.VISIBLE
-            binding.addPhoneButton.visibility = View.GONE
-            view.labelMenu.visibility = View.VISIBLE
-
-            phoneAdapter.selectedPosition = newList.size - 1
+        } else {
+            Log.d("newContactPhone", "mutableList: $phoneMutableList")
+            phoneMutableList.add(PhoneModel("", "", isLabelVisible = false))
         }
 
+        // Set up the Visibility
+        binding.apply {
+            recyclerViewAddPhone.visibility = View.VISIBLE
+            addPhoneItem.visibility = View.VISIBLE
+            addPhoneButton.visibility = View.GONE
+        }
+
+        // Set up the RecyclerView
+        binding.recyclerViewAddPhone.apply {
+            layoutManager = LinearLayoutManager(this@CreateContactActivity)
+            adapter = phoneAdapter
+        }
+
+        // Submit the updated list to the adapter
+        phoneAdapter.submitList(phoneMutableList.toList())
+
+        // Set up the Add Phone Button
+        binding.addPhoneButton.setOnClickListener {
+            val newList = phoneAdapter.currentList.toMutableList()
+            newList.add(PhoneModel("", "", isLabelVisible = true))
+            phoneAdapter.submitList(newList.toList())
+
+            binding.apply {
+                addPhoneItem.visibility = View.VISIBLE
+                addPhoneButton.visibility = View.GONE
+            }
+
+        }
+
+        // Set up the Add Phone Item Button
         binding.addPhoneItem.setOnClickListener {
-            val newList = phoneAdapter.currentList.map { it.copy() } as ArrayList
-            newList.add(PhoneModel("", ""))
-            phoneAdapter.selectedPosition = null
-            view.labelMenu.visibility = View.VISIBLE
-            phoneAdapter.submitList(newList)
+            val newPhoneItemList =
+                phoneAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+            newPhoneItemList.add(PhoneModel("", "", isLabelVisible = true))
+            phoneAdapter.submitList(newPhoneItemList.toList())
+        }
+
+    }
+
+    private fun setAddEmailButton() {
+
+        val emailMutableList = mutableListOf<EmailModel>()
+
+        if (emailList.isNotEmpty()) {
+            emailMutableList.addAll(emailList.map { it.copy(isLabelVisible = true) })
+
+            // Set up the Visibility
+            binding.apply {
+                recyclerViewAddEmail.visibility = View.VISIBLE
+                addEmailItem.visibility = View.VISIBLE
+                addEmailButton.visibility = View.GONE
+            }
+
+            // Set up the RecyclerView
+            binding.recyclerViewAddEmail.apply {
+                layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                adapter = emailAdapter
+            }
+
+            // Submit the updated list to the adapter
+            emailAdapter.submitList(emailMutableList.toList())
+        } else {
+
+            binding.addEmailButton.setOnClickListener {
+
+//            val emailMutableList = mutableListOf<EmailModel>()
+//
+//            if (emailList.isNotEmpty()) {
+//
+//                emailMutableList.addAll(emailList.map { it.copy(isLabelVisible = true) })
+//
+//            }else{
+//                Log.d("newContactEmail", "mutableList: $emailMutableList")
+//                emailMutableList.add(EmailModel("", "", isLabelVisible = true))
+//            }
+                emailMutableList.add(EmailModel("", "", isLabelVisible = true))
+
+                // Set up the Visibility
+                binding.apply {
+                    recyclerViewAddEmail.visibility = View.VISIBLE
+                    addEmailItem.visibility = View.VISIBLE
+                    addEmailButton.visibility = View.GONE
+                }
+
+                // Set up the RecyclerView
+                binding.recyclerViewAddEmail.apply {
+                    layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                    adapter = emailAdapter
+                }
+
+                // Submit the updated list to the adapter
+                emailAdapter.submitList(emailMutableList.toList())
+            }
+        }
+
+
+        binding.addEmailItem.setOnClickListener {
+
+            val newEmailItemList =
+                emailAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+
+            newEmailItemList.add(EmailModel("", "", isLabelVisible = true))
+
+            emailAdapter.submitList(newEmailItemList.toList())
+        }
+
+    }
+
+    private fun setAddBirthdayButton() {
+        val birthdayMutableList = mutableListOf<BirthdayModel>()
+
+        if (birthdayList.isNotEmpty()) {
+            birthdayMutableList.addAll(birthdayList.map { it.copy(isLabelVisible = true) })
+
+            // Set up the Visibility
+            binding.apply {
+                recyclerViewAddBirthday.visibility = View.VISIBLE
+                addBirthdayItem.visibility = View.VISIBLE
+                addBirthdayButton.visibility = View.GONE
+            }
+
+            // Set up the RecyclerView
+            binding.recyclerViewAddBirthday.apply {
+                layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                adapter = birthdayAdapter
+            }
+
+            // Submit the updated list to the adapter
+            birthdayAdapter.submitList(birthdayMutableList.toList())
+
+        } else {
+            binding.addBirthdayButton.setOnClickListener {
+
+//                val birthdayMutableList = mutableListOf<BirthdayModel>()
+
+//                if (birthdayList.isNotEmpty()) {
+
+//                    birthdayMutableList.addAll(birthdayList.map { it.copy(isLabelVisible = true) })
+//
+//                } else {
+//                    Log.d("newContactBirthday", "mutableList: $birthdayMutableList")
+//                    birthdayMutableList.add(BirthdayModel("", "", isLabelVisible = true))
+//                }
+                birthdayMutableList.add(BirthdayModel("", "", isLabelVisible = true))
+
+                // Set up the Visibility
+                binding.apply {
+                    recyclerViewAddBirthday.visibility = View.VISIBLE
+                    addBirthdayItem.visibility = View.VISIBLE
+                    addBirthdayButton.visibility = View.GONE
+                }
+
+                // Set up the RecyclerView
+                binding.recyclerViewAddBirthday.apply {
+                    layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                    adapter = birthdayAdapter
+                }
+
+                // Submit the updated list to the adapter
+                birthdayAdapter.submitList(birthdayMutableList.toList())
+
+                binding.recyclerViewAddBirthday.post {
+                    DialogUtils.showDialogDatePicker(supportFragmentManager)
+                }
+
+            }
+
+        }
+
+        binding.addBirthdayItem.setOnClickListener {
+
+            val newBirthdayItemList =
+                birthdayAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+
+            newBirthdayItemList.add(BirthdayModel("", "", isLabelVisible = true))
+
+            birthdayAdapter.submitList(newBirthdayItemList.toList())
+
+            DialogUtils.showDialogDatePicker(supportFragmentManager)
+        }
+
+    }
+
+    private fun setAddAddressButton() {
+        val addressMutableList = mutableListOf<AddressModel>()
+
+        if (addressList.isNotEmpty()) {
+
+            addressMutableList.addAll(addressList.map { it.copy(isLabelVisible = true) })
+
+            binding.apply {
+
+                recyclerViewAddAddress.visibility = View.VISIBLE
+                addAddressItem.visibility = View.VISIBLE
+                addAddressButton.visibility = View.GONE
+            }
+
+            binding.recyclerViewAddAddress.apply {
+                layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                adapter = addressAdapter
+            }
+
+            addressAdapter.submitList(addressMutableList.toList())
+
+        } else {
+            binding.addAddressButton.setOnClickListener {
+
+//                val addressMutableList = mutableListOf<AddressModel>()
+
+//                if (addressList.isNotEmpty()) {
+//
+//                    addressMutableList.addAll(addressList.map { it.copy(isLabelVisible = true) })
+//
+//                } else {
+//                    Log.d("newContactAddress", "mutableList: $addressMutableList")
+//                    addressMutableList.add(AddressModel("", "", isLabelVisible = true))
+//                }
+
+                addressMutableList.add(AddressModel("", "", isLabelVisible = true))
+
+                binding.apply {
+
+                    recyclerViewAddAddress.visibility = View.VISIBLE
+                    addAddressItem.visibility = View.VISIBLE
+                    addAddressButton.visibility = View.GONE
+                }
+
+                binding.recyclerViewAddAddress.apply {
+                    layoutManager = LinearLayoutManager(this@CreateContactActivity)
+                    adapter = addressAdapter
+                }
+
+                addressAdapter.submitList(addressMutableList.toList())
+
+
+            }
+
+        }
+
+        binding.addAddressItem.setOnClickListener {
+
+            val newAddressItemList =
+                addressAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+//            newList.add(AddressModel("", "", isLabelVisible = true))
+
+            newAddressItemList.add(AddressModel("", "", isLabelVisible = true))
+
+            addressAdapter.submitList(newAddressItemList.toList())
+        }
+
+    }
+
+    private fun setSaveButton() {
+
+        binding.saveButton.setOnClickListener {
+
+            firstName = binding.edFirstName.editText?.text.toString().trim()
+            sureName = binding.edSureName.editText?.text.toString().trim()
+            companyName = binding.edCompany.editText?.text.toString().trim()
+            labelName = listOf(binding.autoComplete.text.toString())
+
+
+            // Collect phone numbers
+            val allPhoneData = phoneAdapter.currentList.toMutableList()
+
+            // Collect emails
+            val allEmailData = emailAdapter.currentList.toMutableList()
+
+            // Collect address
+            val allAddressData = addressAdapter.currentList.toMutableList()
+
+            //Collect birthday
+            val allBirthdayData = birthdayAdapter.currentList.toMutableList()
+
+            handlePermissionsAndSaveContact(
+                allPhoneData,
+                allEmailData,
+                allAddressData,
+                allBirthdayData
+            )
+
+            Log.d("AddPhoneActivity", "All phone data: $allPhoneData")
+            Log.d("AddPhoneActivity", "All phone data size: ${allPhoneData.size}")
         }
     }
 
+    private fun handlePermissionsAndSaveContact(
+        phoneList: List<PhoneModel>,
+        emailList: List<EmailModel>,
+        addressList: List<AddressModel>,
+        birthdayList: List<BirthdayModel>
+    ) {
+        if (permissions.all {
+                ActivityCompat.checkSelfPermission(
+                    this,
+                    it
+                ) == PackageManager.PERMISSION_GRANTED
+            }) {
+            phoneList.forEach { phoneModel ->
+                emailList.forEach { emailModel ->
+                    addressList.forEach { addressModel ->
+                        birthdayList.forEach { birthdayModel ->
+
+                            SaveContactData.insertOrUpdateContact(
+                                this,
+                                contentResolver,
+                                phoneNumber = phoneModel.phoneNumber,
+                                phoneLabel = phoneModel.phoneLabel,
+                                email = emailModel.email,
+                                emailLabel = emailModel.emailLabel,
+                                address = addressModel.address,
+                                addressLabel = addressModel.addressLabel,
+                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
+                                birthdayLabel = birthdayModel.birthdayLabel,
+                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
+                                    this,
+                                    R.drawable.ic_launcher_background
+                                ),
+                                firstName = firstName,
+                                sureName = sureName,
+                                companyName = companyName,
+                                labelName = labelName
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            requestMultiplePermissionsLauncher.launch(permissions)
+        }
+    }
+
+
+    private val requestMultiplePermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            if (permissions.values.all {
+                    it
+                }) {
+                // Save data after getting permissions
+                saveContactData(
+                    phoneAdapter.currentList.toMutableList(),
+                    emailAdapter.currentList.toMutableList(),
+                    addressAdapter.currentList.toMutableList(),
+                    birthdayAdapter.currentList.toMutableList()
+                )
+            } else {
+                Toast.makeText(
+                    this,
+                    "All permissions are required to save contacts!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+    private fun saveContactData(
+        phoneList: List<PhoneModel>,
+        emailList: List<EmailModel>,
+        addressList: List<AddressModel>,
+        birthdayList: List<BirthdayModel>
+    ) {
+
+        phoneList.forEach { phoneModel ->
+            emailList.forEach { emailModel ->
+                addressList.forEach { addressModel ->
+                    birthdayList.forEach { birthdayModel ->
+
+                        SaveContactData.insertOrUpdateContact(
+                            this,
+                            contentResolver,
+                            phoneNumber = phoneModel.phoneNumber,
+                            phoneLabel = phoneModel.phoneLabel,
+                            email = emailModel.email,
+                            emailLabel = emailModel.emailLabel,
+                            address = addressModel.address,
+                            addressLabel = addressModel.addressLabel,
+                            birthdayDatePicker = birthdayModel.birthdayDatePicker,
+                            birthdayLabel = birthdayModel.birthdayLabel,
+                            contactProfilePic = SaveContactData.convertDrawableResToBitmap(
+                                this,
+                                R.drawable.ic_launcher_background
+                            ),
+                            firstName = firstName,
+                            sureName = sureName,
+                            companyName = companyName,
+                            labelName = labelName
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
+
+        _binding?.apply {
+            recyclerViewAddPhone.adapter = null
+            recyclerViewAddEmail.adapter = null
+            recyclerViewAddAddress.adapter = null
+            recyclerViewAddBirthday.adapter = null
+        }
+
         _binding = null
     }
 }

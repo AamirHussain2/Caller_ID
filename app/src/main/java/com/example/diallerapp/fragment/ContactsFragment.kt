@@ -29,6 +29,7 @@ class ContactsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var contentAdapter: ContentAdapter
+
     private val contactsViewModel: ContactsViewModel by viewModels()
 
     // Register permission launcher for contacts permission
@@ -75,7 +76,7 @@ class ContactsFragment : Fragment() {
 //    }
 
     private fun setupRecyclerView() {
-        contentAdapter = ContentAdapter()
+        contentAdapter = ContentAdapter(this.requireContext())
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = contentAdapter
     }
@@ -95,7 +96,7 @@ class ContactsFragment : Fragment() {
 
             withContext(Dispatchers.Main){
                 contactsViewModel.contacts.observe(viewLifecycleOwner) { contacts ->
-                    contentAdapter.submitList(contacts)
+                    contentAdapter.submitList(contacts.toList())
                 }
             }
         }

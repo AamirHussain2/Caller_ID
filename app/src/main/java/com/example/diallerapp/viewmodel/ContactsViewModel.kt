@@ -21,8 +21,9 @@ class ContactsViewModel : ViewModel() {
 
     fun fetchContacts(contentResolver: ContentResolver) {
         viewModelScope.launch {
+
             val contactList = fetchContactsFromPhoneList(contentResolver)
-            Log.d("ContactsViewModel", "Contacts fetched: $contactList\n")
+
             _contacts.postValue(contactList)
         }
     }
@@ -30,8 +31,11 @@ class ContactsViewModel : ViewModel() {
     private suspend fun fetchContactsFromPhoneList(
         contentResolver: ContentResolver
     ): List<ContactModel> {
+
         return withContext(Dispatchers.IO) {
+
             val contactList = mutableListOf<ContactModel>()
+
             val cursor: Cursor? = contentResolver.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 null,
@@ -45,13 +49,18 @@ class ContactsViewModel : ViewModel() {
                     it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                 val phoneNumberIndex =
                     it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val contactIdIndex =
+                    it.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID) // Fetch the contactId
+
 
                 // Ensure column indexes are valid (not -1)
                 if (displayNameIndex != -1 && phoneNumberIndex != -1) {
                     while (it.moveToNext()) {
                         val name = it.getString(displayNameIndex)
                         val phoneNumber = it.getString(phoneNumberIndex)
-                        contactList.add(ContactModel(name, phoneNumber))
+                        val contactId = it.getLong(contactIdIndex) // Get the contactId
+                        contactList.add(ContactModel(name, phoneNumber, contactId))
+                        Log.d("ContactsViewModel", "Contact added: $name, $phoneNumber")
                     }
                 }
                 it.close()

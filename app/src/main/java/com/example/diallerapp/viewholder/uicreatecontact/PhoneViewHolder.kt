@@ -3,7 +3,7 @@
 //import android.util.Log
 //import android.view.View
 //import androidx.recyclerview.widget.RecyclerView
-//import com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter
+//import com.example.diallerapp.adapter.uicreatecontact.com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter
 //import com.example.diallerapp.databinding.ActivityCreateContactBinding
 //import com.example.diallerapp.databinding.CustomPhoneUiBinding
 //import com.example.diallerapp.model.uicreatecontact.PhoneModel
@@ -17,7 +17,7 @@
 //        item: PhoneModel,
 //        activityBinding: ActivityCreateContactBinding,
 //        currentList: List<PhoneModel>,
-//        adapter: PhoneAdapter
+//        adapter: com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter
 //    ) {
 //
 //        binding.edPhone.editText?.setText(item.phoneNumber)
@@ -46,7 +46,7 @@
 //                    activityBinding.addPhoneButton.visibility = View.GONE
 //                }
 //            } else {
-//                Log.e("PhoneAdapter", "Invalid adapterPosition: $position")
+//                Log.e("com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter", "Invalid adapterPosition: $position")
 //            }
 //        }
 //
@@ -62,7 +62,7 @@
 //        activityBinding.addPhoneItem.setOnClickListener {
 //            val newList = currentList.map { it.copy() } as ArrayList
 //            newList.add(item)
-//            Log.d("PhoneAdapter", "newList: ${newList.size}")
+//            Log.d("com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter", "newList: ${newList.size}")
 //            // Reset selectedPosition when a new item is added
 //            selectedPosition = null
 //            adapter.submitList(newList)
