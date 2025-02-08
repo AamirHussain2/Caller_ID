@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+    <Button
+        android:id="@+id/buttonFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New label"
+        android:textAlignment="textStart"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        app:icon="@android:drawable/ic_input_add"
+        />
+
+</LinearLayout>
