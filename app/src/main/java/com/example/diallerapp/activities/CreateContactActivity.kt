@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.graphics.createBitmap
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.R
 import com.example.diallerapp.adapter.uicreatecontact.AddToLabelAdapter
@@ -28,6 +29,7 @@ import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
 import com.example.diallerapp.utils.DialogUtils
 import com.example.diallerapp.utils.SaveContactData
+import kotlin.properties.Delegates
 
 
 class CreateContactActivity : AppCompatActivity() {
@@ -56,6 +58,7 @@ class CreateContactActivity : AppCompatActivity() {
     private lateinit var emailList: List<EmailModel>
     private lateinit var addressList: List<AddressModel>
     private lateinit var birthdayList: List<BirthdayModel>
+    private lateinit var contactId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -177,10 +180,12 @@ class CreateContactActivity : AppCompatActivity() {
         }
 
         // get intent data for recycler view
-        phoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as List<PhoneModel>
-        emailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as List<EmailModel>
-        addressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as List<AddressModel>
-        birthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as List<BirthdayModel>
+        contactId = intent.getStringExtra("contact_id") ?: ""
+        Log.d("contId", "intent contact id: $contactId")
+        phoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as? List<PhoneModel> ?: emptyList()
+        emailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as? List<EmailModel> ?: emptyList()
+        addressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as? List<AddressModel> ?: emptyList()
+        birthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as? List<BirthdayModel> ?: emptyList()
 
 
     }
@@ -460,24 +465,23 @@ class CreateContactActivity : AppCompatActivity() {
             companyName = binding.edCompany.editText?.text.toString().trim()
             labelName = listOf(binding.autoComplete.text.toString())
 
-
             // Collect phone numbers
-            val allPhoneData = phoneAdapter.currentList.toMutableList()
+            val allPhoneData = phoneAdapter.currentList
 
             // Collect emails
-            val allEmailData = emailAdapter.currentList.toMutableList()
+            val allEmailData = emailAdapter.currentList
 
             // Collect address
-            val allAddressData = addressAdapter.currentList.toMutableList()
+            val allAddressData = addressAdapter.currentList
 
             //Collect birthday
-            val allBirthdayData = birthdayAdapter.currentList.toMutableList()
+            val allBirthdayData = birthdayAdapter.currentList
 
             handlePermissionsAndSaveContact(
-                allPhoneData,
-                allEmailData,
-                allAddressData,
-                allBirthdayData
+                phoneList = allPhoneData,
+                emailList = allEmailData,
+                addressList = allAddressData,
+                birthdayList = allBirthdayData
             )
 
             Log.d("AddPhoneActivity", "All phone data: $allPhoneData")
@@ -497,35 +501,42 @@ class CreateContactActivity : AppCompatActivity() {
                     it
                 ) == PackageManager.PERMISSION_GRANTED
             }) {
-            phoneList.forEach { phoneModel ->
-                emailList.forEach { emailModel ->
-                    addressList.forEach { addressModel ->
-                        birthdayList.forEach { birthdayModel ->
+//            phoneList.forEach { phoneModel ->
+//                emailList.forEach { emailModel ->
+//                    addressList.forEach { addressModel ->
+//                        birthdayList.forEach { birthdayModel ->
+//
+//                            SaveContactData.insertOrUpdateContact(
+//                                this,
+//                                contentResolver,
+//                                phoneNumber = phoneModel.phoneNumber,
+//                                phoneLabel = phoneModel.phoneLabel,
+//                                email = emailModel.email,
+//                                emailLabel = emailModel.emailLabel,
+//                                address = addressModel.address,
+//                                addressLabel = addressModel.addressLabel,
+//                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
+//                                birthdayLabel = birthdayModel.birthdayLabel,
+//                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
+//                                    this,
+//                                    R.drawable.ic_launcher_background
+//                                ),
+//                                firstName = firstName,
+//                                sureName = sureName,
+//                                companyName = companyName,
+//                                labelName = labelName
+//                            )
+//                        }
+//                    }
+//                }
+//            }
 
-                            SaveContactData.insertOrUpdateContact(
-                                this,
-                                contentResolver,
-                                phoneNumber = phoneModel.phoneNumber,
-                                phoneLabel = phoneModel.phoneLabel,
-                                email = emailModel.email,
-                                emailLabel = emailModel.emailLabel,
-                                address = addressModel.address,
-                                addressLabel = addressModel.addressLabel,
-                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
-                                birthdayLabel = birthdayModel.birthdayLabel,
-                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
-                                    this,
-                                    R.drawable.ic_launcher_background
-                                ),
-                                firstName = firstName,
-                                sureName = sureName,
-                                companyName = companyName,
-                                labelName = labelName
-                            )
-                        }
-                    }
-                }
-            }
+            saveContactData(
+                phoneList = phoneList,
+                emailList = emailList,
+                addressList = addressList,
+                birthdayList = birthdayList
+            )
         } else {
             requestMultiplePermissionsLauncher.launch(permissions)
         }
@@ -533,7 +544,9 @@ class CreateContactActivity : AppCompatActivity() {
 
 
     private val requestMultiplePermissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
             if (permissions.values.all {
                     it
                 }) {
@@ -559,36 +572,43 @@ class CreateContactActivity : AppCompatActivity() {
         addressList: List<AddressModel>,
         birthdayList: List<BirthdayModel>
     ) {
+        try {
+            phoneList.forEach { phoneModel ->
+                emailList.forEach { emailModel ->
+                    addressList.forEach { addressModel ->
+                        birthdayList.forEach { birthdayModel ->
 
-        phoneList.forEach { phoneModel ->
-            emailList.forEach { emailModel ->
-                addressList.forEach { addressModel ->
-                    birthdayList.forEach { birthdayModel ->
-
-                        SaveContactData.insertOrUpdateContact(
-                            this,
-                            contentResolver,
-                            phoneNumber = phoneModel.phoneNumber,
-                            phoneLabel = phoneModel.phoneLabel,
-                            email = emailModel.email,
-                            emailLabel = emailModel.emailLabel,
-                            address = addressModel.address,
-                            addressLabel = addressModel.addressLabel,
-                            birthdayDatePicker = birthdayModel.birthdayDatePicker,
-                            birthdayLabel = birthdayModel.birthdayLabel,
-                            contactProfilePic = SaveContactData.convertDrawableResToBitmap(
-                                this,
-                                R.drawable.ic_launcher_background
-                            ),
-                            firstName = firstName,
-                            sureName = sureName,
-                            companyName = companyName,
-                            labelName = labelName
-                        )
+                            SaveContactData.insertOrUpdateContact(
+                                context = this,
+                                contactId = contactId,
+                                contentResolver = contentResolver,
+                                phoneNumber = phoneModel.phoneNumber,
+                                phoneLabel = phoneModel.phoneLabel,
+                                email = emailModel.email,
+                                emailLabel = emailModel.emailLabel,
+                                address = addressModel.address,
+                                addressLabel = addressModel.addressLabel,
+                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
+                                birthdayLabel = birthdayModel.birthdayLabel,
+                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
+                                    this,
+                                    R.drawable.ic_launcher_background
+                                ),
+                                firstName = firstName,
+                                sureName = sureName,
+                                companyName = companyName,
+                                labelName = labelName
+                            )
+                        }
                     }
                 }
             }
+
+        }catch (e: Exception){
+            Log.e("CreateContactActivity", "Error saving contact: ${e.message}")
+            Toast.makeText(this, "Error saving contact: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+        finish()
     }
 
 

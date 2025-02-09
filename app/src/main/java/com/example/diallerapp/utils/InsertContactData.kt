@@ -34,10 +34,9 @@ class InsertContactData {
             addressLabel: String = "",
             labelName: List<String>
         ) {
-            Log.d("SaveData", "saveContact: addressLabel: $addressLabel")
-            Log.d("SaveData", "saveContact: emailLabel $emailLabel")
-//            if (phoneNumber.isBlank() || phoneLabel.isBlank()) {
-//                Toast.makeText(context, "Please fill the required fields!", Toast.LENGTH_SHORT).show()
+
+//            if (firstName.isBlank() || phoneNumber.isBlank()) {
+//                Toast.makeText(context, "Name and Number are required!", Toast.LENGTH_SHORT).show()
 //                return
 //            }
 

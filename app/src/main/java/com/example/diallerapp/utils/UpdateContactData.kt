@@ -4,19 +4,19 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.provider.ContactsContract
+import android.util.Log
 import java.io.ByteArrayOutputStream
 
 class UpdateContactData {
+    companion object {
 
-    companion object{
-
-        // Function to Update Contact
         fun updateContact(
             contentResolver: ContentResolver,
-            contactId: Long,
+            contactId: String,
             contactProfilePic: Bitmap?,
             firstName: String,
             sureName: String,
+            companyName: String,
             phoneNumber: String,
             phoneLabel: String,
             email: String,
@@ -27,82 +27,66 @@ class UpdateContactData {
             addressLabel: String,
             labelName: List<String>
         ) {
-            val where = "${ContactsContract.Data.CONTACT_ID} = ?"
-            val whereArgs = arrayOf(contactId.toString())
+            val where = "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?"
+            val whereArgs = { mimetype: String -> arrayOf(contactId.toString(), mimetype) }
 
-            // Update Name
-            val nameValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
                 put(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, sureName)
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, nameValues, where, whereArgs)
 
-            // Update Phone Number
-            val phoneValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)) {
+                put(ContactsContract.CommonDataKinds.Organization.COMPANY, companyName)
+            }
+
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
                 put(ContactsContract.CommonDataKinds.Phone.TYPE, mapPhoneLabelToType(phoneLabel))
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, phoneValues, where, whereArgs)
 
-            // Update Email
-            val emailValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
                 put(ContactsContract.CommonDataKinds.Email.TYPE, mapEmailLabelToType(emailLabel))
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, emailValues, where, whereArgs)
 
-            // Update Birthday
-            val birthdayValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.Event.START_DATE, birthdayDatePicker)
                 put(ContactsContract.CommonDataKinds.Event.TYPE, mapBirthdayLabelToType(birthdayLabel))
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, birthdayValues, where, whereArgs)
 
-            // Update Address
-            val addressValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS, address)
                 put(ContactsContract.CommonDataKinds.StructuredPostal.TYPE, mapAddressLabelToType(addressLabel))
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, addressValues, where, whereArgs)
 
-            // Update Labels
-            val labelValues = ContentValues().apply {
+            updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE)) {
                 put(ContactsContract.CommonDataKinds.Note.NOTE, labelName.joinToString(", "))
             }
-            contentResolver.update(ContactsContract.Data.CONTENT_URI, labelValues, where, whereArgs)
-
 
             // Update Profile Picture
             if (contactProfilePic != null) {
-                val profilePicValues = ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                updateField(contentResolver, where, whereArgs(ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)) {
                     put(ContactsContract.CommonDataKinds.Photo.PHOTO, convertImageToByteArray(contactProfilePic))
                 }
-
-                val rowsUpdated = contentResolver.update(
-                    ContactsContract.Data.CONTENT_URI,
-                    profilePicValues,
-                    "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
-                    arrayOf(contactId.toString(), ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-                )
-
-                // Agar koi existing profile picture nahi hai to insert karein
-                if (rowsUpdated == 0) {
-                    val insertPicValues = ContentValues().apply {
-                        put(ContactsContract.Data.RAW_CONTACT_ID, contactId)
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.Photo.PHOTO, convertImageToByteArray(contactProfilePic))
-                    }
-                    contentResolver.insert(ContactsContract.Data.CONTENT_URI, insertPicValues)
-                }
             }
+        }
 
+        // ✅ Function to Update Only if Existing Data is Found
+        private fun updateField(contentResolver: ContentResolver, where: String, whereArgs: Array<String>, valuesBuilder: ContentValues.() -> Unit) {
+            val values = ContentValues().apply(valuesBuilder)
+            val rowsUpdated = contentResolver.update(ContactsContract.Data.CONTENT_URI, values, where, whereArgs)
+
+            if (rowsUpdated > 0) {
+                Log.d("UpdateContactData", "Updated: ${whereArgs[1]}")
+            } else {
+                Log.e("UpdateContactData", "Update Failed (No Match Found): ${whereArgs[1]}")
+            }
         }
 
         private fun convertImageToByteArray(image: Bitmap): ByteArray {
-            val outPutStream = ByteArrayOutputStream()
-            image.compress(Bitmap.CompressFormat.PNG, 100, outPutStream)
-            return outPutStream.toByteArray()
+            val outputStream = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            return outputStream.toByteArray()
         }
 
         private fun mapPhoneLabelToType(phoneLabel: String): Int {
@@ -148,6 +132,5 @@ class UpdateContactData {
                 else -> ContactsContract.CommonDataKinds.StructuredPostal.TYPE_CUSTOM
             }
         }
-
     }
 }

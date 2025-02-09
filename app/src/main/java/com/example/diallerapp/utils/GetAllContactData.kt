@@ -14,7 +14,7 @@ class GetAllContactData{
 
          // Function to get Contact ID from Phone Number
 
-        private fun getContactIdFromPhoneNumber(context: Context, phoneNumber: String): String? {
+        fun getContactIdFromPhoneNumber(context: Context, phoneNumber: String): String? {
             val contentResolver = context.contentResolver
             val phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
             val phoneProjection = arrayOf(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
@@ -36,7 +36,7 @@ class GetAllContactData{
             }
             phoneCursor?.close()
 
-            Log.d("ContactEmail", "Found Contact ID: $contactId for number: $phoneNumber")
+            Log.d("contactId", "Found Contact ID: $contactId for number: $phoneNumber")
             return contactId
         }
 

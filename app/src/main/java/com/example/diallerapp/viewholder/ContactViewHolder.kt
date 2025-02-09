@@ -42,46 +42,26 @@ class ContactViewHolder(private val binding: CustomContactsUiBinding, private va
             val companyName = GetAllContactData.getCompanyNameFromPhoneNumber(context, number)
             Log.d("ContactEmail", "companyName: $companyName")
 
+            val contactId: String? = GetAllContactData.getContactIdFromPhoneNumber(context, number)
+            Log.d("contId", "view holder contact id: $contactId")
+
             // get All Contact Data
             val phoneList = GetAllContactData.getPhoneAndLabelFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "phoneList: $phoneList")
-
-            for (phoneModel in phoneList) {
-//                Log.d("ContactPhone", "Phone: ${phoneModel.phoneNumber}, Label: ${phoneModel.phoneLabel}")
-            }
 
             // get Address
             val addressList = GetAllContactData.getAddressAndLabelFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "addressList: $addressList")
-
-            for (addressModel in addressList) {
-                Log.d("ContactEmail", "Address: ${addressModel.address}, Label: ${addressModel.addressLabel}")
-            }
 
             // get Email
             val emailList = GetAllContactData.getEmailAndLabelFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "emailList: $emailList")
-//            for ((email, label) in emailList) {
-//                Log.d("ContactEmail", "Email: $email, Label: $label")
-//            }
-            for (emailModel in emailList) {
-                val email = emailModel.email
-                val label = emailModel.emailLabel
-                Log.d("ContactEmail", "Email: $email, Label: $label")
-            }
 
             // get Birthday
             val birthdayList = GetAllContactData.getBirthdayAndLabelFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "birthdayList: $birthdayList")
-
-            for (birthdayModel in birthdayList) {
-                Log.d("ContactEmail", "Birthday: ${birthdayModel.birthdayDatePicker}, Label: ${birthdayModel.birthdayLabel}")
-            }
 
 
             intent.putExtra("contact_name", name)
             intent.putExtra("contact_sureName", sureName)
             intent.putExtra("contact_company", companyName)
+            intent.putExtra("contact_id", contactId)
             intent.putParcelableArrayListExtra("phone_list", phoneList as ArrayList<PhoneModel>)
             intent.putParcelableArrayListExtra("email_list", emailList as ArrayList<EmailModel>)
             intent.putParcelableArrayListExtra("address_list", addressList as ArrayList<AddressModel>)
