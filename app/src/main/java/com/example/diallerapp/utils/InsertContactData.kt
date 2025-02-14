@@ -1,22 +1,22 @@
 package com.example.diallerapp.utils
 
-import android.accounts.Account
-import android.accounts.AccountManager
-import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.net.Uri
 import android.provider.ContactsContract
-import android.util.Log
 import android.widget.Toast
+import com.example.diallerapp.model.uicreatecontact.AddressModel
+import com.example.diallerapp.model.uicreatecontact.BirthdayModel
+import com.example.diallerapp.model.uicreatecontact.EmailModel
+import com.example.diallerapp.model.uicreatecontact.PhoneModel
 import java.io.ByteArrayOutputStream
 
 class InsertContactData {
 
     companion object{
+
         fun insertContact(
             context: Context,
             contentResolver: ContentResolver,
@@ -24,24 +24,13 @@ class InsertContactData {
             firstName: String = "",
             sureName: String = "",
             companyName: String = "",
-            phoneNumber: String = "",
-            phoneLabel: String = "",
-            email: String = "",
-            emailLabel: String = "",
-            birthdayDatePicker: String = "",
-            birthdayLabel: String = "",
-            address: String = "",
-            addressLabel: String = "",
+            phoneList: List<PhoneModel>,
+            emailList: List<EmailModel>,
+            addressList: List<AddressModel>,
+            birthdayList: List<BirthdayModel>,
             labelName: List<String>
         ) {
-
-//            if (firstName.isBlank() || phoneNumber.isBlank()) {
-//                Toast.makeText(context, "Name and Number are required!", Toast.LENGTH_SHORT).show()
-//                return
-//            }
-
             val resolver: ContentResolver = contentResolver
-
             val values = ContentValues()
 
             try {
@@ -52,87 +41,115 @@ class InsertContactData {
                 val nameValues = ContentValues().apply {
                     put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                     put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                    put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, firstName)  // First Name
-                    put(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, sureName)  // Last Name (Surname)
+                    put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, firstName)
+                    put(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, sureName)
                 }
                 resolver.insert(ContactsContract.Data.CONTENT_URI, nameValues)
 
-                // Add organization (company name)
-                    val companyValues = ContentValues().apply {
+                // Insert Company Name
+                val companyValues = ContentValues().apply {
+                    put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
+                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+                    put(ContactsContract.CommonDataKinds.Organization.COMPANY, companyName)
+                }
+                resolver.insert(ContactsContract.Data.CONTENT_URI, companyValues)
+
+                // Insert Multiple Phone Numbers
+                for (phone in phoneList) {
+                    val phoneValues = ContentValues().apply {
                         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.Organization.COMPANY, companyName)
+                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                        put(ContactsContract.CommonDataKinds.Phone.NUMBER, phone.phoneNumber)
+                        put(ContactsContract.CommonDataKinds.Phone.TYPE, mapPhoneLabelToType(phone.phoneLabel))
                     }
-                    resolver.insert(ContactsContract.Data.CONTENT_URI, companyValues)
-
-                // Add label
-                val labelValues = ContentValues().apply {
-                    val labelText = labelName.joinToString(", ") // Convert list to comma-separated text
-
-                    put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE)
-                    put(ContactsContract.CommonDataKinds.Note.NOTE, labelText )
+                    resolver.insert(ContactsContract.Data.CONTENT_URI, phoneValues)
                 }
-                resolver.insert(ContactsContract.Data.CONTENT_URI, labelValues)
-                Log.d("SaveData", "Note added: This is a custom note for the contact.")
 
-
-                // Insert Number
-                val phoneValues = ContentValues().apply {
-                    put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                    put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
-                    put(ContactsContract.CommonDataKinds.Phone.TYPE, mapPhoneLabelToType(phoneLabel))
-                }
-                resolver.insert(ContactsContract.Data.CONTENT_URI, phoneValues)
-
-                // Insert Email
+                // Insert Multiple Emails
+                for (email in emailList) {
                     val emailValues = ContentValues().apply {
                         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                         put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
-                        put(ContactsContract.CommonDataKinds.Email.TYPE, mapEmailLabelToType(emailLabel))
+                        put(ContactsContract.CommonDataKinds.Email.ADDRESS, email.email)
+                        put(ContactsContract.CommonDataKinds.Email.TYPE, mapEmailLabelToType(email.emailLabel))
                     }
                     resolver.insert(ContactsContract.Data.CONTENT_URI, emailValues)
-                    Log.d("SaveData", "Email added: ${mapEmailLabelToType(emailLabel)}")
+                }
 
-
-                // Insert Birthday
+                // Insert Multiple Birthdays
+                for (birthday in birthdayList) {
                     val birthdayValues = ContentValues().apply {
                         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                         put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.Event.START_DATE, birthdayDatePicker)
-                        put(ContactsContract.CommonDataKinds.Event.TYPE, mapBirthdayLabelToType(birthdayLabel))
+                        put(ContactsContract.CommonDataKinds.Event.START_DATE, birthday.birthdayDatePicker)
+                        put(ContactsContract.CommonDataKinds.Event.TYPE, mapBirthdayLabelToType(birthday.birthdayLabel))
                     }
                     resolver.insert(ContactsContract.Data.CONTENT_URI, birthdayValues)
+                }
 
-
-                // Insert Address
+                // Insert Multiple Addresses
+                for (address in addressList) {
                     val addressValues = ContentValues().apply {
                         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                         put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.StructuredPostal.CITY, address)
-                        put(ContactsContract.CommonDataKinds.StructuredPostal.TYPE, mapAddressLabelToType(addressLabel))
+                        put(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS, address.address)
+                        put(ContactsContract.CommonDataKinds.StructuredPostal.TYPE, mapAddressLabelToType(address.addressLabel))
                     }
                     resolver.insert(ContactsContract.Data.CONTENT_URI, addressValues)
-                    Log.d("SaveData", "Address added: ${mapAddressLabelToType(addressLabel)}")
+                }
+
+                // Insert label Name
+                for (label in labelName) {
+                    val groupValues = ContentValues().apply {
+                        put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
+                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
+                        put(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID, getGroupId(context, contentResolver, label))
+                    }
+                    resolver.insert(ContactsContract.Data.CONTENT_URI, groupValues)
+                }
 
 
-                // Insert ProfilePic
-                if (contactProfilePic.toString().isNotBlank()) {
+                // Insert Profile Picture
+                if (contactProfilePic != null) {
                     val profilePicValues = ContentValues().apply {
                         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                         put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.Photo.PHOTO,
-                            contactProfilePic?.let { convertImageToByteArray(it) })
+                        put(ContactsContract.CommonDataKinds.Photo.PHOTO, convertImageToByteArray(contactProfilePic))
                     }
                     resolver.insert(ContactsContract.Data.CONTENT_URI, profilePicValues)
                 }
+
                 Toast.makeText(context, "Contact Saved", Toast.LENGTH_SHORT).show()
+
             } catch (e: Exception) {
                 Toast.makeText(context, "Error saving contact: $e", Toast.LENGTH_SHORT).show()
             }
         }
+
+        private fun getGroupId(context: Context, contentResolver: ContentResolver, groupName: String): Long {
+            val cursor = contentResolver.query(
+                ContactsContract.Groups.CONTENT_URI,
+                arrayOf(ContactsContract.Groups._ID),
+                "${ContactsContract.Groups.TITLE} = ?",
+                arrayOf(groupName),
+                null
+            )
+
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    return it.getLong(it.getColumnIndexOrThrow(ContactsContract.Groups._ID))
+                }
+            }
+
+            // Group nahi mila, to naya create karo
+            val values = ContentValues().apply {
+                put(ContactsContract.Groups.TITLE, groupName)
+                put(ContactsContract.Groups.GROUP_VISIBLE, 1)
+            }
+            val newGroupUri = contentResolver.insert(ContactsContract.Groups.CONTENT_URI, values)
+            return newGroupUri?.lastPathSegment?.toLong() ?: -1
+        }
+
 
         private fun mapPhoneLabelToType(phoneLabel: String): Int {
             return when (phoneLabel) {
@@ -178,33 +195,10 @@ class InsertContactData {
             }
         }
 
-        private fun saveToAccounts(accountType: String, context: Context): Account? {
-            val accounts = AccountManager.get(context).getAccountsByType(accountType)
-            return if (accounts.isNotEmpty()) {
-                Log.d("saveToAccounts", "saveToAccounts: ${accounts[0]}")
-                accounts[0]
-            } else {
-                null
-            }
-        }
-
         private fun convertImageToByteArray(image: Bitmap): ByteArray {
             val outPutStream = ByteArrayOutputStream()
             image.compress(Bitmap.CompressFormat.PNG, 100, outPutStream)
             return outPutStream.toByteArray()
-        }
-
-        @SuppressLint("UseCompatLoadingForDrawables")
-        fun convertDrawableResToBitmap(context: Context, drawableRes: Int): Bitmap {
-            val drawable = context.getDrawable(drawableRes)!!
-            val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 1
-            val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 1
-
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            return bitmap
         }
     }
 }

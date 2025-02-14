@@ -25,8 +25,6 @@ class PhoneAdapter(val activityAddPhoneBinding: ActivityCreateContactBinding) :
             binding.edPhone.editText?.setText(item.phoneNumber).toString()
             binding.phoneAutoComplete.setText(item.phoneLabel, false).toString()
 
-            Log.d("com.example.diallerapp.adapter.uicreatecontact.PhoneAdapter", "phoneNumber: ${item.phoneNumber}, phoneLabel: ${item.phoneLabel}")
-
             binding.labelMenu.visibility = if (item.isLabelVisible) View.VISIBLE else View.GONE
 
             // Set dropdown menu for phone labels
@@ -57,8 +55,11 @@ class PhoneAdapter(val activityAddPhoneBinding: ActivityCreateContactBinding) :
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val newList = currentList.toMutableList()
+                    Log.d("TESTING", "before newList: $newList")
                     newList.removeAt(position)
-                    submitList(newList)
+                    Log.d("TESTING", "after newList: $newList")
+
+                    submitList(newList.toList())
 
                     if (newList.isEmpty()) {
                         activityAddPhoneBinding.addPhoneButton.visibility = View.VISIBLE

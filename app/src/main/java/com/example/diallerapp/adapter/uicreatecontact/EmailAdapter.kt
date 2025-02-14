@@ -25,7 +25,6 @@ class EmailAdapter(val activityAddEmailBinding: ActivityCreateContactBinding) :
             binding.edEmail.editText?.setText(item.email).toString()
             binding.emailAutoCompleteLabel.setText(item.emailLabel, false).toString()
 
-            Log.d("com.example.diallerapp.adapter.uicreatecontact.EmailAdapter", "email: ${item.email}, emailLabel: ${item.emailLabel}")
 
             binding.labelMenu.visibility = if (item.isLabelVisible) View.VISIBLE else View.GONE
 

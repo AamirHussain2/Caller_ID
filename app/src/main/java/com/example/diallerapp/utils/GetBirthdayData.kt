@@ -9,7 +9,6 @@ class GetBirthdayData {
 
     companion object {
 
-
         fun getBirthdayAndLabelFromPhoneNumber(context: Context, contactId: String?): List<BirthdayModel> {
 
             return getBirthdayAndLabelFromContactId(context, contactId)
@@ -17,7 +16,7 @@ class GetBirthdayData {
         }
 
         private fun getBirthdayAndLabelFromContactId(context: Context, contactId: String?): List<BirthdayModel> {
-            if (contactId == null) return emptyList() // Agar ID nahi mili toh empty list return karo
+            if (contactId.isNullOrEmpty()) return emptyList()
 
             val birthdayList = mutableListOf<BirthdayModel>()
             val contentResolver = context.contentResolver
@@ -36,16 +35,21 @@ class GetBirthdayData {
                 arrayOf(contactId, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE),
                 null
             )
-
-            eventCursor?.use {
+            if (eventCursor == null) {
+                return emptyList() // Prevent crash if query fails
+            }
+            eventCursor.use {
                 while (it.moveToNext()) {
                     val dateIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Event.START_DATE)
                     val typeIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Event.TYPE)
                     val labelIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Event.LABEL)
 
-                    val birthdayDate = it.getString(dateIndex) ?: "Unknown Date"
+                    if (dateIndex == -1 || typeIndex == -1 || labelIndex == -1) continue // Skip if columns are missing
+
+
+                    val birthdayDate = it.getString(dateIndex) ?: ""
                     val eventType = it.getInt(typeIndex)
-                    var eventLabel = it.getString(labelIndex)
+                    var eventLabel = it.getString(labelIndex) ?: ""
 
                     if (eventType != ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM) {
                         eventLabel = getEventTypeLabel(eventType)
@@ -54,7 +58,7 @@ class GetBirthdayData {
                     birthdayList.add(BirthdayModel(birthdayDate, eventLabel))
                 }
             }
-            eventCursor?.close()
+            eventCursor.close()
 
             return birthdayList
         }

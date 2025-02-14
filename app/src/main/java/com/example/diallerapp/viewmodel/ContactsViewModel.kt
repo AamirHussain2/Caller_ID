@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.database.Cursor
 import android.provider.ContactsContract
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,41 +32,53 @@ class ContactsViewModel : ViewModel() {
     private suspend fun fetchContactsFromPhoneList(
         contentResolver: ContentResolver
     ): List<ContactModel> {
-
         return withContext(Dispatchers.IO) {
-
             val contactList = mutableListOf<ContactModel>()
+            var cursor: Cursor? = null
 
-            val cursor: Cursor? = contentResolver.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                null,
-                null,
-                null,
-                null
-            )
+            try {
+                cursor = contentResolver.query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                        ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID // Use CONTACT_ID instead of _ID
+                    ),
+                    null,
+                    null,
+                    null
+                )
 
-            cursor?.let {
-                val displayNameIndex =
-                    it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
-                val phoneNumberIndex =
-                    it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                val contactIdIndex =
-                    it.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID) // Fetch the contactId
-
-
-                // Ensure column indexes are valid (not -1)
-                if (displayNameIndex != -1 && phoneNumberIndex != -1) {
-                    while (it.moveToNext()) {
-                        val name = it.getString(displayNameIndex)
-                        val phoneNumber = it.getString(phoneNumberIndex)
-                        val contactId = it.getLong(contactIdIndex) // Get the contactId
-                        contactList.add(ContactModel(name, phoneNumber, contactId))
-                        Log.d("ContactsViewModel", "Contact added: $name, $phoneNumber")
-                    }
+                if (cursor == null) {
+                    Log.e("ContactsViewModel", "Cursor is null. No contacts found.")
+                    return@withContext contactList
                 }
-                it.close()
+
+                // Ensure valid column indexes
+                val displayNameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val phoneNumberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val contactIdIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID) // Use CONTACT_ID
+
+                if (displayNameIndex == -1 || phoneNumberIndex == -1 || contactIdIndex == -1) {
+                    Log.e("ContactsViewModel", "One or more column indexes are invalid.")
+                    return@withContext contactList
+                }
+
+                while (cursor.moveToNext()) {
+                    val name = cursor.getString(displayNameIndex) ?: "Unknown"
+                    val phoneNumber = cursor.getString(phoneNumberIndex) ?: "No Number"
+                    val contactId = cursor.getLong(contactIdIndex)
+
+                    contactList.add(ContactModel(name, phoneNumber, contactId))
+                }
+            } catch (e: Exception) {
+                Log.e("ContactsViewModel", "Error fetching contacts: ${e.message}")
+            } finally {
+                cursor?.close() // Always close cursor to prevent memory leaks
             }
-            contactList
+
+            return@withContext contactList
         }
     }
+
 }

@@ -51,14 +51,15 @@ class CreateContactActivity : AppCompatActivity() {
     private lateinit var companyName: String
     private lateinit var labelName: List<String>
 
-    private val mutableList = mutableListOf<AddToLabelModel>()
-
     private lateinit var dialog: Dialog
-    private lateinit var phoneList: List<PhoneModel>
-    private lateinit var emailList: List<EmailModel>
-    private lateinit var addressList: List<AddressModel>
-    private lateinit var birthdayList: List<BirthdayModel>
-    private lateinit var contactId: String
+    private lateinit var addToLabelAdapter: AddToLabelAdapter
+
+    private lateinit var updatedPhoneList: List<PhoneModel>
+    private lateinit var updatedEmailList: List<EmailModel>
+    private lateinit var updatedAddressList: List<AddressModel>
+    private lateinit var updatedBirthdayList: List<BirthdayModel>
+    private lateinit var updatedContactId: String
+    private lateinit var updatedGroupLabel: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,81 +76,9 @@ class CreateContactActivity : AppCompatActivity() {
 
         binding.crossButton.setOnClickListener { finish() }
 
-        binding.addLabelButton.setOnClickListener {
-
-            Log.d("CreateContactActivity", "mutableList: $mutableList")
-
-            dialog = Dialog(this)
-            val dialogBinding = CustomAddToLabelDialogBinding.inflate(LayoutInflater.from(this))
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            dialog.setContentView(dialogBinding.root)
-
-            dialogBinding.btnOk.isEnabled = false
 
 
-            dialogBinding.recyclerViewAddToLabelDialog.layoutManager = LinearLayoutManager(this)
-
-            val addToLabelAdapter = AddToLabelAdapter(this)
-
-            mutableList.add(AddToLabelModel("item 1"))
-            mutableList.add(AddToLabelModel("item 2"))
-            mutableList.add(AddToLabelModel("item 3"))
-            mutableList.add(AddToLabelModel("item 4"))
-            mutableList.add(AddToLabelModel("item 5"))
-            mutableList.add(AddToLabelModel("item 6"))
-            mutableList.add(AddToLabelModel("item 7"))
-            mutableList.add(AddToLabelModel("item 8"))
-            mutableList.add(AddToLabelModel("item 9"))
-            mutableList.add(AddToLabelModel("item 10"))
-
-            dialogBinding.recyclerViewAddToLabelDialog.adapter = addToLabelAdapter
-            addToLabelAdapter.submitList(mutableList)
-
-            // Function to check if any item is checked
-            fun updateOkButtonState() {
-                val isAnyItemChecked = addToLabelAdapter.currentList.any { it.isChecked }
-                dialogBinding.btnOk.isEnabled = isAnyItemChecked
-            }
-
-            // Listener for checkbox state changes
-            addToLabelAdapter.setOnItemCheckedChangeListener {
-                updateOkButtonState()
-            }
-
-            dialogBinding.btnOk.setOnClickListener {
-
-                val selectedText = addToLabelAdapter.currentList.filter { it.isChecked }
-                    .joinToString(", ") { it.textViewLabel }
-
-                binding.autoComplete.setText(selectedText) // EditText me text set karna
-
-                binding.addToLabelConstraintLayout.visibility = View.VISIBLE
-                binding.addLabelButton.visibility = View.GONE
-
-                dialog.dismiss()
-            }
-
-            dialogBinding.btnCancel.setOnClickListener {
-                dialog.dismiss()
-            }
-
-            Log.d("CreateContactActivity", "addToLabelAdapter: ${addToLabelAdapter.currentList}")
-
-            dialog.show()
-
-        }
-
-        binding.autoComplete.setOnClickListener {
-            if (::dialog.isInitialized) {
-                dialog.show()
-            }
-        }
-
-        binding.addToLabelDelete.setOnClickListener {
-            binding.addLabelButton.visibility = View.VISIBLE
-            binding.addToLabelConstraintLayout.visibility = View.GONE
-        }
-
+        setAddToLabel()
 
         setAddPhoneButton()
 
@@ -180,28 +109,200 @@ class CreateContactActivity : AppCompatActivity() {
         }
 
         // get intent data for recycler view
-        contactId = intent.getStringExtra("contact_id") ?: ""
-        Log.d("contId", "intent contact id: $contactId")
-        phoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as? List<PhoneModel> ?: emptyList()
-        emailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as? List<EmailModel> ?: emptyList()
-        addressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as? List<AddressModel> ?: emptyList()
-        birthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as? List<BirthdayModel> ?: emptyList()
+        updatedContactId = intent.getStringExtra("contact_id") ?: ""
+        Log.d("contId", "get intent contact id: $updatedContactId")
 
+        updatedPhoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as? List<PhoneModel> ?: emptyList()
+        Log.d("TESTING", "updatedPhoneList...: $updatedPhoneList")
+
+        updatedEmailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as? List<EmailModel> ?: emptyList()
+        updatedAddressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as? List<AddressModel> ?: emptyList()
+        updatedBirthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as? List<BirthdayModel> ?: emptyList()
+
+        updatedGroupLabel = intent.getStringExtra("group_label") ?: ""
+        Log.d("contId", "get intent group label: $updatedGroupLabel")
+    }
+
+    private fun setAddToLabel(){
+        val groupLabelMutableList = mutableListOf<AddToLabelModel>()
+
+        if (updatedGroupLabel.isNotEmpty()) {
+            binding.apply {
+
+                autoComplete.setText(updatedGroupLabel)
+                addToLabelConstraintLayout.visibility = View.VISIBLE
+                addLabelButton.visibility = View.GONE
+
+                groupLabelMutableList.add(AddToLabelModel(updatedGroupLabel))
+
+                autoComplete.setOnClickListener {
+                    showAddToLabelDialog(groupLabelMutableList)
+                }
+            }
+        }
+
+        binding.addLabelButton.setOnClickListener {
+                showAddToLabelDialog(groupLabelMutableList)
+
+//            val dialogBinding = CustomAddToLabelDialogBinding.inflate(LayoutInflater.from(this))
+//
+//            dialog.apply {
+//                window?.setBackgroundDrawableResource(android.R.color.transparent)
+//                setContentView(dialogBinding.root)
+//            }
+//
+//            addToLabelAdapter = AddToLabelAdapter(this)
+//
+//            groupLabelMutableList.apply {
+//                add(AddToLabelModel("item 1"))
+//                add(AddToLabelModel("item 2"))
+//                add(AddToLabelModel("item 3"))
+//                add(AddToLabelModel("item 4"))
+//                add(AddToLabelModel("item 5"))
+//                add(AddToLabelModel("item 6"))
+//                add(AddToLabelModel("item 7"))
+//                add(AddToLabelModel("item 8"))
+//                add(AddToLabelModel("item 9"))
+//                add(AddToLabelModel("item 10"))
+//            }
+//
+//            // set adapter
+//            dialogBinding.apply {
+//                btnOk.isEnabled = false
+//                recyclerViewAddToLabelDialog.layoutManager = LinearLayoutManager(this@CreateContactActivity)
+//                recyclerViewAddToLabelDialog.adapter = addToLabelAdapter
+//            }
+//
+//            addToLabelAdapter.submitList(groupLabelMutableList.toList())
+//
+//            // Listener for checkbox state changes
+//            addToLabelAdapter.setOnItemCheckedChangeListener {
+//                // To check if any item is checked
+//                val isAnyItemChecked = addToLabelAdapter.currentList.any { it.isChecked }
+//                dialogBinding.btnOk.isEnabled = isAnyItemChecked
+//            }
+//
+//            dialogBinding.apply {
+//
+//                btnOk.setOnClickListener {
+//
+//                    val selectedText = addToLabelAdapter.currentList.filter { it.isChecked }
+//                        .joinToString(", ") { it.textViewLabel }
+//
+//
+//                    binding.apply {
+//                        autoComplete.setText(selectedText)
+//
+//                        addToLabelConstraintLayout.visibility = View.VISIBLE
+//                        addLabelButton.visibility = View.GONE
+//                    }
+//
+//                    dialog.dismiss()
+//                }
+//
+//                btnCancel.setOnClickListener {
+//                    dialog.dismiss()
+//                }
+//            }
+//            Log.d("CreateContactActivity", "addToLabelAdapter: ${addToLabelAdapter.currentList}")
+//
+//            dialog.show()
+        }
+
+        // click view of autoComplete
+        binding.apply {
+
+            autoComplete.setOnClickListener {
+                showAddToLabelDialog(groupLabelMutableList)
+            }
+
+            // delete button
+            addToLabelDelete.setOnClickListener {
+                addLabelButton.visibility = View.VISIBLE
+                addToLabelConstraintLayout.visibility = View.GONE
+            }
+        }
 
     }
 
+    private fun showAddToLabelDialog(groupLabelMutableList: MutableList<AddToLabelModel>) {
+        dialog = Dialog(this)
+
+        val dialogBinding = CustomAddToLabelDialogBinding.inflate(LayoutInflater.from(this))
+
+        dialog.apply {
+            window?.setBackgroundDrawableResource(android.R.color.transparent)
+            setContentView(dialogBinding.root)
+        }
+
+        val addToLabelAdapter = AddToLabelAdapter(this)
+
+        groupLabelMutableList.apply {
+            add(AddToLabelModel("item 1"))
+            add(AddToLabelModel("item 2"))
+            add(AddToLabelModel("item 3"))
+            add(AddToLabelModel("item 4"))
+            add(AddToLabelModel("item 5"))
+            add(AddToLabelModel("item 6"))
+            add(AddToLabelModel("item 7"))
+            add(AddToLabelModel("item 8"))
+            add(AddToLabelModel("item 9"))
+            add(AddToLabelModel("item 10"))
+        }
+
+        dialogBinding.apply {
+            btnOk.isEnabled = false
+            recyclerViewAddToLabelDialog.layoutManager = LinearLayoutManager(this@CreateContactActivity)
+            recyclerViewAddToLabelDialog.adapter = addToLabelAdapter
+        }
+
+        addToLabelAdapter.submitList(groupLabelMutableList.toList())
+
+        // Listener for checkbox state changes
+        addToLabelAdapter.setOnItemCheckedChangeListener {
+            val isAnyItemChecked = addToLabelAdapter.currentList.any { it.isChecked }
+            dialogBinding.btnOk.isEnabled = isAnyItemChecked
+        }
+
+        dialogBinding.apply {
+
+            btnOk.setOnClickListener {
+                val selectedText = addToLabelAdapter.currentList
+                    .filter { it.isChecked }
+                    .joinToString(", ") { it.textViewLabel }
+
+                binding.apply {
+                    autoComplete.setText(selectedText)
+                    addToLabelConstraintLayout.visibility = View.VISIBLE
+                    addLabelButton.visibility = View.GONE
+                }
+
+                dialog.dismiss()
+            }
+
+            btnCancel.setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+
+        Log.d("CreateContactActivity", "addToLabelAdapter: ${addToLabelAdapter.currentList}")
+
+        dialog.show()
+    }
 
     private fun setAddPhoneButton() {
 
         val phoneMutableList = mutableListOf<PhoneModel>()
 
-        if (phoneList.isNotEmpty()) {
+        if (updatedPhoneList.isNotEmpty()) {
 
-            phoneMutableList.addAll(phoneList.map { it.copy(isLabelVisible = true) })
+            phoneMutableList.addAll(updatedPhoneList.map { it.copy(isLabelVisible = true) })
 
         } else {
             Log.d("newContactPhone", "mutableList: $phoneMutableList")
             phoneMutableList.add(PhoneModel("", "", isLabelVisible = false))
+            Log.d("DEBUG", "Phone List Size...: ${phoneMutableList.size}")
+
         }
 
         // Set up the Visibility
@@ -224,6 +325,7 @@ class CreateContactActivity : AppCompatActivity() {
         binding.addPhoneButton.setOnClickListener {
             val newList = phoneAdapter.currentList.toMutableList()
             newList.add(PhoneModel("", "", isLabelVisible = true))
+
             phoneAdapter.submitList(newList.toList())
 
             binding.apply {
@@ -235,9 +337,11 @@ class CreateContactActivity : AppCompatActivity() {
 
         // Set up the Add Phone Item Button
         binding.addPhoneItem.setOnClickListener {
-            val newPhoneItemList =
-                phoneAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+            val newPhoneItemList = phoneAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+            Log.d("DEBUG", "newPhoneItemList: $newPhoneItemList")
             newPhoneItemList.add(PhoneModel("", "", isLabelVisible = true))
+            Log.d("DEBUG", "Phone List: ${newPhoneItemList.size} \n ${newPhoneItemList.forEach { it.phoneNumber + it.phoneLabel }}")
+
             phoneAdapter.submitList(newPhoneItemList.toList())
         }
 
@@ -247,8 +351,8 @@ class CreateContactActivity : AppCompatActivity() {
 
         val emailMutableList = mutableListOf<EmailModel>()
 
-        if (emailList.isNotEmpty()) {
-            emailMutableList.addAll(emailList.map { it.copy(isLabelVisible = true) })
+        if (updatedEmailList.isNotEmpty()) {
+            emailMutableList.addAll(updatedEmailList.map { it.copy(isLabelVisible = true) })
 
             // Set up the Visibility
             binding.apply {
@@ -269,16 +373,6 @@ class CreateContactActivity : AppCompatActivity() {
 
             binding.addEmailButton.setOnClickListener {
 
-//            val emailMutableList = mutableListOf<EmailModel>()
-//
-//            if (emailList.isNotEmpty()) {
-//
-//                emailMutableList.addAll(emailList.map { it.copy(isLabelVisible = true) })
-//
-//            }else{
-//                Log.d("newContactEmail", "mutableList: $emailMutableList")
-//                emailMutableList.add(EmailModel("", "", isLabelVisible = true))
-//            }
                 emailMutableList.add(EmailModel("", "", isLabelVisible = true))
 
                 // Set up the Visibility
@@ -315,8 +409,8 @@ class CreateContactActivity : AppCompatActivity() {
     private fun setAddBirthdayButton() {
         val birthdayMutableList = mutableListOf<BirthdayModel>()
 
-        if (birthdayList.isNotEmpty()) {
-            birthdayMutableList.addAll(birthdayList.map { it.copy(isLabelVisible = true) })
+        if (updatedBirthdayList.isNotEmpty()) {
+            birthdayMutableList.addAll(updatedBirthdayList.map { it.copy(isLabelVisible = true) })
 
             // Set up the Visibility
             binding.apply {
@@ -337,16 +431,6 @@ class CreateContactActivity : AppCompatActivity() {
         } else {
             binding.addBirthdayButton.setOnClickListener {
 
-//                val birthdayMutableList = mutableListOf<BirthdayModel>()
-
-//                if (birthdayList.isNotEmpty()) {
-
-//                    birthdayMutableList.addAll(birthdayList.map { it.copy(isLabelVisible = true) })
-//
-//                } else {
-//                    Log.d("newContactBirthday", "mutableList: $birthdayMutableList")
-//                    birthdayMutableList.add(BirthdayModel("", "", isLabelVisible = true))
-//                }
                 birthdayMutableList.add(BirthdayModel("", "", isLabelVisible = true))
 
                 // Set up the Visibility
@@ -390,9 +474,9 @@ class CreateContactActivity : AppCompatActivity() {
     private fun setAddAddressButton() {
         val addressMutableList = mutableListOf<AddressModel>()
 
-        if (addressList.isNotEmpty()) {
+        if (updatedAddressList.isNotEmpty()) {
 
-            addressMutableList.addAll(addressList.map { it.copy(isLabelVisible = true) })
+            addressMutableList.addAll(updatedAddressList.map { it.copy(isLabelVisible = true) })
 
             binding.apply {
 
@@ -410,17 +494,6 @@ class CreateContactActivity : AppCompatActivity() {
 
         } else {
             binding.addAddressButton.setOnClickListener {
-
-//                val addressMutableList = mutableListOf<AddressModel>()
-
-//                if (addressList.isNotEmpty()) {
-//
-//                    addressMutableList.addAll(addressList.map { it.copy(isLabelVisible = true) })
-//
-//                } else {
-//                    Log.d("newContactAddress", "mutableList: $addressMutableList")
-//                    addressMutableList.add(AddressModel("", "", isLabelVisible = true))
-//                }
 
                 addressMutableList.add(AddressModel("", "", isLabelVisible = true))
 
@@ -496,40 +569,8 @@ class CreateContactActivity : AppCompatActivity() {
         birthdayList: List<BirthdayModel>
     ) {
         if (permissions.all {
-                ActivityCompat.checkSelfPermission(
-                    this,
-                    it
-                ) == PackageManager.PERMISSION_GRANTED
-            }) {
-//            phoneList.forEach { phoneModel ->
-//                emailList.forEach { emailModel ->
-//                    addressList.forEach { addressModel ->
-//                        birthdayList.forEach { birthdayModel ->
-//
-//                            SaveContactData.insertOrUpdateContact(
-//                                this,
-//                                contentResolver,
-//                                phoneNumber = phoneModel.phoneNumber,
-//                                phoneLabel = phoneModel.phoneLabel,
-//                                email = emailModel.email,
-//                                emailLabel = emailModel.emailLabel,
-//                                address = addressModel.address,
-//                                addressLabel = addressModel.addressLabel,
-//                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
-//                                birthdayLabel = birthdayModel.birthdayLabel,
-//                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
-//                                    this,
-//                                    R.drawable.ic_launcher_background
-//                                ),
-//                                firstName = firstName,
-//                                sureName = sureName,
-//                                companyName = companyName,
-//                                labelName = labelName
-//                            )
-//                        }
-//                    }
-//                }
-//            }
+                ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }) {
 
             saveContactData(
                 phoneList = phoneList,
@@ -552,10 +593,10 @@ class CreateContactActivity : AppCompatActivity() {
                 }) {
                 // Save data after getting permissions
                 saveContactData(
-                    phoneAdapter.currentList.toMutableList(),
-                    emailAdapter.currentList.toMutableList(),
-                    addressAdapter.currentList.toMutableList(),
-                    birthdayAdapter.currentList.toMutableList()
+                    phoneAdapter.currentList,
+                    emailAdapter.currentList,
+                    addressAdapter.currentList,
+                    birthdayAdapter.currentList
                 )
             } else {
                 Toast.makeText(
@@ -573,43 +614,35 @@ class CreateContactActivity : AppCompatActivity() {
         birthdayList: List<BirthdayModel>
     ) {
         try {
-            phoneList.forEach { phoneModel ->
-                emailList.forEach { emailModel ->
-                    addressList.forEach { addressModel ->
-                        birthdayList.forEach { birthdayModel ->
+            val contactProfilePic = SaveContactData.convertDrawableResToBitmap(
+                this,
+                R.drawable.ic_launcher_background
+            )
 
-                            SaveContactData.insertOrUpdateContact(
-                                context = this,
-                                contactId = contactId,
-                                contentResolver = contentResolver,
-                                phoneNumber = phoneModel.phoneNumber,
-                                phoneLabel = phoneModel.phoneLabel,
-                                email = emailModel.email,
-                                emailLabel = emailModel.emailLabel,
-                                address = addressModel.address,
-                                addressLabel = addressModel.addressLabel,
-                                birthdayDatePicker = birthdayModel.birthdayDatePicker,
-                                birthdayLabel = birthdayModel.birthdayLabel,
-                                contactProfilePic = SaveContactData.convertDrawableResToBitmap(
-                                    this,
-                                    R.drawable.ic_launcher_background
-                                ),
-                                firstName = firstName,
-                                sureName = sureName,
-                                companyName = companyName,
-                                labelName = labelName
-                            )
-                        }
-                    }
-                }
-            }
+            SaveContactData.insertOrUpdateContact(
+                context = this,
+                contactId = updatedContactId,
+                contentResolver = contentResolver,
+                phoneList = phoneList,
+                emailList = emailList,
+                addressList = addressList,
+                birthdayList = birthdayList,
+                contactProfilePic = contactProfilePic,
+                firstName = firstName,
+                sureName = sureName,
+                companyName = companyName,
+                labelName = labelName
+            )
 
-        }catch (e: Exception){
-            Log.e("CreateContactActivity", "Error saving contact: ${e.message}")
+            Toast.makeText(this, "Contact Saved Successfully!", Toast.LENGTH_SHORT).show()
+
+        } catch (e: Exception) {
             Toast.makeText(this, "Error saving contact: ${e.message}", Toast.LENGTH_SHORT).show()
         }
         finish()
     }
+
+
 
 
     override fun onDestroy() {

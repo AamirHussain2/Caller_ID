@@ -13,7 +13,7 @@ class GetAddressData {
         }
 
         private fun getAddressAndLabelFromContactId(context: Context, contactId: String?): List<AddressModel> {
-            if (contactId == null) return emptyList() // Agar ID nahi mili toh empty list return karo
+            if (contactId.isNullOrEmpty()) return emptyList() // Prevent null access
 
             val addressList = mutableListOf<AddressModel>()
             val contentResolver = context.contentResolver
@@ -33,15 +33,21 @@ class GetAddressData {
                 null
             )
 
-            addressCursor?.use {
-                while (it.moveToNext()) {
-                    val addressIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS)
-                    val typeIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE)
-                    val labelIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.LABEL)
+            if (addressCursor == null) {
+                return emptyList() // Prevent crash if query fails
+            }
 
-                    val address = it.getString(addressIndex)
-                    val addressType = it.getInt(typeIndex)
-                    var addressLabel = it.getString(labelIndex)
+            addressCursor.use { cursor ->
+                while (cursor.moveToNext()) {
+                    val addressIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS)
+                    val typeIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE)
+                    val labelIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.LABEL)
+
+                    if (addressIndex == -1 || typeIndex == -1 || labelIndex == -1) continue // Skip if columns are missing
+
+                    val address = cursor.getString(addressIndex) ?: ""
+                    val addressType = cursor.getInt(typeIndex)
+                    var addressLabel = cursor.getString(labelIndex) ?: ""
 
                     if (addressType != ContactsContract.CommonDataKinds.StructuredPostal.TYPE_CUSTOM) {
                         addressLabel = getAddressTypeLabel(addressType)
@@ -50,11 +56,10 @@ class GetAddressData {
                     addressList.add(AddressModel(address, addressLabel))
                 }
             }
-            addressCursor?.close()
+            addressCursor.close()
 
             return addressList
         }
-
 
         private fun getAddressTypeLabel(addressType: Int): String {
             return when (addressType) {

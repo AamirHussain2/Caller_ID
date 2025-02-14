@@ -25,7 +25,6 @@ class AddressAdapter(val activityAddAddressBinding: ActivityCreateContactBinding
             binding.edAddress.editText?.setText(item.address).toString()
             binding.addressAutoCompleteLabel.setText(item.addressLabel, false).toString()
 
-            Log.d("AddressAdapter", "address: ${item.address}, addressLabel: ${item.addressLabel}")
 
             binding.labelMenu.visibility = if (item.isLabelVisible) View.VISIBLE else View.GONE
 

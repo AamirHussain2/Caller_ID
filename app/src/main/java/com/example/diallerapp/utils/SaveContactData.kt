@@ -5,9 +5,12 @@ import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.provider.ContactsContract
 import android.util.Log
 import android.widget.Toast
+import com.example.diallerapp.model.uicreatecontact.AddressModel
+import com.example.diallerapp.model.uicreatecontact.BirthdayModel
+import com.example.diallerapp.model.uicreatecontact.EmailModel
+import com.example.diallerapp.model.uicreatecontact.PhoneModel
 
 class SaveContactData {
 
@@ -16,28 +19,23 @@ class SaveContactData {
         fun insertOrUpdateContact(
             context: Context,
             contentResolver: ContentResolver,
-            contactId: String,
+            contactId: String?,
             contactProfilePic: Bitmap?,
             firstName: String = "",
             sureName: String = "",
             companyName: String = "",
-            phoneNumber: String = "",
-            phoneLabel: String = "",
-            email: String = "",
-            emailLabel: String = "",
-            birthdayDatePicker: String = "",
-            birthdayLabel: String = "",
-            address: String = "",
-            addressLabel: String = "",
+            phoneList: List<PhoneModel>,
+            emailList: List<EmailModel>,
+            addressList: List<AddressModel>,
+            birthdayList: List<BirthdayModel>,
             labelName: List<String>
         ) {
-//            val contactId = GetAllContactData.getContactIdFromPhoneNumber(context, phoneNumber)
-            Log.d("contactId", "SaveContactData->Found Contact ID: $contactId for number: $phoneNumber")
+            if (contactId.isNullOrEmpty()) {
+                Log.d("contId", "if-> Contact ID is empty, inserting new contact: $contactId")
+                Log.d("contId", "phone list: $phoneList")
+                Log.d("TESTING", "insertContact...: $phoneList")
 
-            if (contactId.isEmpty()) {
-                Log.d("contId", "insert contact id: $contactId")
-
-                // Contact does not exist, insert new
+                // Insert new contact with lists
                 InsertContactData.insertContact(
                     context = context,
                     contentResolver = contentResolver,
@@ -45,62 +43,38 @@ class SaveContactData {
                     firstName = firstName,
                     sureName = sureName,
                     companyName = companyName,
-                    phoneNumber = phoneNumber,
-                    phoneLabel = phoneLabel,
-                    email = email,
-                    emailLabel = emailLabel,
-                    birthdayDatePicker = birthdayDatePicker,
-                    birthdayLabel = birthdayLabel,
-                    address = address,
-                    addressLabel = addressLabel,
+                    phoneList = phoneList,
+                    emailList = emailList,
+                    addressList = addressList,
+                    birthdayList = birthdayList,
                     labelName = labelName
                 )
                 Toast.makeText(context, "New Contact Saved", Toast.LENGTH_SHORT).show()
-            } else {
-                Log.d("contId", "update contact id: $contactId")
 
-                // Contact exists, update it
+            } else {
+                Log.d("contId", "else-> Updating contact with ID: $contactId")
+                Log.d("contId", "phone list: $phoneList")
+                Log.d("TESTING", "updateContact...: $phoneList")
+
+
+                // Update existing contact with lists
                 UpdateContactData.updateContact(
+                    context = context,
                     contactId = contactId,
                     contentResolver = contentResolver,
                     contactProfilePic = contactProfilePic,
                     firstName = firstName,
                     sureName = sureName,
                     companyName = companyName,
-                    phoneNumber = phoneNumber,
-                    phoneLabel = phoneLabel,
-                    email = email,
-                    emailLabel = emailLabel,
-                    birthdayDatePicker = birthdayDatePicker,
-                    birthdayLabel = birthdayLabel,
-                    address = address,
-                    addressLabel = addressLabel,
+                    phoneList = phoneList,
+                    emailList = emailList,
+                    addressList = addressList,
+                    birthdayList = birthdayList,
                     labelName = labelName
                 )
                 Toast.makeText(context, "Contact Updated", Toast.LENGTH_SHORT).show()
-
             }
         }
-
-//        // Function to get Contact ID by Phone Number
-//        private fun getContactIdByPhoneNumber(contentResolver: ContentResolver, phoneNumber: String): Long? {
-//            val cursor = contentResolver.query(
-//                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-//                arrayOf(ContactsContract.CommonDataKinds.Phone.CONTACT_ID),
-//                ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?",
-//                arrayOf(phoneNumber),
-//                null
-//            )
-//
-//            var contactId: Long? = null
-//            cursor?.use {
-//                if (it.moveToFirst()) {
-//                    contactId = it.getLong(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID))
-//                }
-//            }
-//            cursor?.close()
-//            return contactId
-//        }
 
         @SuppressLint("UseCompatLoadingForDrawables")
         fun convertDrawableResToBitmap(context: Context, drawableRes: Int): Bitmap? {

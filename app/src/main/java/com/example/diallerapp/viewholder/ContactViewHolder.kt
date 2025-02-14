@@ -25,25 +25,20 @@ class ContactViewHolder(private val binding: CustomContactsUiBinding, private va
 
             val number = binding.contactPhone.text.toString()
             val name = binding.contactName.text.toString()
-            Log.d("ContactViewHolder", "number: $number")
-            Log.d("ContactViewHolder", "name: $name")
 
             val intent = Intent(binding.root.context, CreateContactActivity::class.java)
 
             // get First Name
             val firstName = GetAllContactData.getFirstNameFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "firstName: $firstName")
 
             // get SureName
             val sureName = GetAllContactData.getSureNameFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "sureName: $sureName")
 
             // get Company
             val companyName = GetAllContactData.getCompanyNameFromPhoneNumber(context, number)
-            Log.d("ContactEmail", "companyName: $companyName")
 
             val contactId: String? = GetAllContactData.getContactIdFromPhoneNumber(context, number)
-            Log.d("contId", "view holder contact id: $contactId")
+            Log.d("contId", "click item contact id: $contactId")
 
             // get All Contact Data
             val phoneList = GetAllContactData.getPhoneAndLabelFromPhoneNumber(context, number)
@@ -57,11 +52,15 @@ class ContactViewHolder(private val binding: CustomContactsUiBinding, private va
             // get Birthday
             val birthdayList = GetAllContactData.getBirthdayAndLabelFromPhoneNumber(context, number)
 
+            //get label
+            val groupLabel = GetAllContactData.getLabelNameFromPhoneNumber(context, number)
+
 
             intent.putExtra("contact_name", name)
             intent.putExtra("contact_sureName", sureName)
             intent.putExtra("contact_company", companyName)
             intent.putExtra("contact_id", contactId)
+            intent.putExtra("group_label", groupLabel)
             intent.putParcelableArrayListExtra("phone_list", phoneList as ArrayList<PhoneModel>)
             intent.putParcelableArrayListExtra("email_list", emailList as ArrayList<EmailModel>)
             intent.putParcelableArrayListExtra("address_list", addressList as ArrayList<AddressModel>)

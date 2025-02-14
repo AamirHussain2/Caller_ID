@@ -13,7 +13,6 @@ class GetAllContactData{
     companion object {
 
          // Function to get Contact ID from Phone Number
-
         fun getContactIdFromPhoneNumber(context: Context, phoneNumber: String): String? {
             val contentResolver = context.contentResolver
             val phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
@@ -31,17 +30,23 @@ class GetAllContactData{
             phoneCursor?.use {
                 if (it.moveToFirst()) {
                     val idIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
-                    contactId = it.getString(idIndex)
+
+                    if (idIndex != -1) {
+                        contactId = it.getString(idIndex)
+
+                    } else {
+                        Log.e("GetAllContactData", "CONTACT_ID column not found")
+                    }
+                } else {
+                    Log.e("GetAllContactData", "No contact found for phone number: $phoneNumber")
                 }
             }
             phoneCursor?.close()
 
-            Log.d("contactId", "Found Contact ID: $contactId for number: $phoneNumber")
             return contactId
         }
 
         // Function to get First Name directly from Phone Number
-
         fun getFirstNameFromPhoneNumber(context: Context, phoneNumber: String): String?{
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
             return getFirstNameFromContactId(context, contactId)
@@ -78,7 +83,6 @@ class GetAllContactData{
             return firstName
         }
 
-
         // Function to get Sure Name directly from Phone Number
         fun getSureNameFromPhoneNumber(context: Context, phoneNumber: String): String? {
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
@@ -86,7 +90,6 @@ class GetAllContactData{
         }
 
         // Function to get Sure Name using Contact ID
-
         private fun getSureNameFromContactId(context: Context, contactId: String?): String? {
             if (contactId == null) return null  // Agar contact ID nahi mili to return null
             val contentResolver = context.contentResolver
@@ -116,8 +119,69 @@ class GetAllContactData{
 
         }
 
-        // Function to get Company Name directly from Phone Number
+        // Function to get Label Name directly from Phone Number
+        fun getLabelNameFromPhoneNumber(context: Context, phoneNumber: String): String? {
+            val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
+            return getLabelNameFromContactId(context, contactId)
+        }
 
+        // Function to get Label Name using Contact ID
+        private fun getLabelNameFromContactId(context: Context, contactId: String?): String? {
+            if (contactId == null) return null
+            val contentResolver = context.contentResolver
+
+            val labelUri = ContactsContract.Data.CONTENT_URI
+            val labelProjection = arrayOf(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID)
+
+            val labelCursor = contentResolver.query(
+                labelUri,
+                labelProjection,
+                "${ContactsContract.CommonDataKinds.GroupMembership.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
+                arrayOf(contactId, ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE),
+                null
+            )
+
+            var groupId: Long? = null
+            labelCursor?.use {
+                if (it.moveToFirst()) {
+                    val groupIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID)
+                    groupId = it.getLong(groupIndex)
+                }
+            }
+            labelCursor?.close()
+
+            return groupId?.let { getGroupNameFromId(context, it) }
+        }
+
+        // Function to get Group Name from Group ID
+        private fun getGroupNameFromId(context: Context, groupId: Long): String? {
+            val contentResolver = context.contentResolver
+
+            val groupUri = ContactsContract.Groups.CONTENT_URI
+            val groupProjection = arrayOf(ContactsContract.Groups.TITLE)
+
+            val groupCursor = contentResolver.query(
+                groupUri,
+                groupProjection,
+                "${ContactsContract.Groups._ID} = ?",
+                arrayOf(groupId.toString()),
+                null
+            )
+
+            var groupName: String? = null
+            groupCursor?.use {
+                if (it.moveToFirst()) {
+                    val groupIndex = it.getColumnIndex(ContactsContract.Groups.TITLE)
+                    groupName = it.getString(groupIndex)
+                }
+            }
+            groupCursor?.close()
+
+            return groupName
+        }
+
+
+        // Function to get Company Name directly from Phone Number
         fun getCompanyNameFromPhoneNumber(context: Context, phoneNumber: String): String? {
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
             return getCompanyNameFromContactId(context, contactId)
@@ -155,33 +219,37 @@ class GetAllContactData{
         }
 
         // Function to get birthday and label directly from Phone Number
-
         fun getBirthdayAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<BirthdayModel>{
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
+            if (contactId == null) {
+                Log.e("GetAllContactData", "No Contact ID found for phone number: $phoneNumber")
+                return emptyList() // Return an empty list instead of crashing
+            }
             return GetBirthdayData.getBirthdayAndLabelFromPhoneNumber(context, contactId)
         }
 
         // Function to get address and label directly from Phone Number
-
         fun getAddressAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<AddressModel>{
 
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
-
+            if (contactId == null) {
+                Log.e("GetAllContactData", "No Contact ID found for phone number: $phoneNumber")
+                return emptyList() // Return an empty list instead of crashing
+            }
             return GetAddressData.getAddressAndLabelFromPhoneNumber(context, contactId)
         }
 
         // Function to get Phone and Label directly from Phone Number (Combines both functions)
-
         fun getPhoneAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<PhoneModel>{
-            Log.d("GetContactData", "phoneNumber: $phoneNumber")
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
 
-            return GetPhoneData.getPhoneAndLabelFromPhoneNumber(context, contactId)
+            val list =  GetPhoneData.getPhoneAndLabelFromPhoneNumber(context, contactId)
+
+            return list
 
         }
 
         // Function to get Email and Label directly from Phone Number
-
         fun getEmailAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<EmailModel>{
 
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
@@ -189,5 +257,6 @@ class GetAllContactData{
             return GetEmailData.getEmailAndLabelFromPhoneNumber(context, contactId)
 
         }
+
     }
 }

@@ -2,6 +2,7 @@ package com.example.diallerapp.utils
 
 import android.content.Context
 import android.provider.ContactsContract
+import android.util.Log
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
 
 class GetPhoneData {
@@ -12,12 +13,17 @@ class GetPhoneData {
 
         fun getPhoneAndLabelFromPhoneNumber(context: Context, contactId: String?) : List<PhoneModel>{
 
-            return getPhoneAndLabelFromContactId(context, contactId)
+            val list = getPhoneAndLabelFromContactId(context, contactId)
+
+            Log.d("PHONE", "getPhoneAndLabelFromContactId: $list")
+
+            return list
         }
 
         // Function to get Phone and Label using Contact ID
 
         private fun getPhoneAndLabelFromContactId(context: Context, contactId: String?): List<PhoneModel> {
+            Log.d("PHONE", "contactId->getPhoneAndLabelFromContactId: $contactId")
             if (contactId == null) return emptyList() // Agar ID nahi mili to empty list return karo
 
             val phoneList = mutableListOf<PhoneModel>()
@@ -46,9 +52,8 @@ class GetPhoneData {
 
                     val phoneNumber = it.getString(numberIndex)
                     val phoneType = it.getInt(typeIndex)
-                    var phoneLabel = it.getString(labelIndex)
 
-                    phoneLabel = if (phoneType != ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) {
+                   var phoneLabel = if (phoneType != ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) {
                         getPhoneTypeLabel(phoneType)
                     }else{
                         "Custom"
