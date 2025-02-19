@@ -13,18 +13,14 @@ class GetPhoneData {
 
         fun getPhoneAndLabelFromPhoneNumber(context: Context, contactId: String?) : List<PhoneModel>{
 
-            val list = getPhoneAndLabelFromContactId(context, contactId)
-
-            Log.d("PHONE", "getPhoneAndLabelFromContactId: $list")
-
-            return list
+            return getPhoneAndLabelFromContactId(context, contactId)
         }
 
         // Function to get Phone and Label using Contact ID
 
         private fun getPhoneAndLabelFromContactId(context: Context, contactId: String?): List<PhoneModel> {
             Log.d("PHONE", "contactId->getPhoneAndLabelFromContactId: $contactId")
-            if (contactId == null) return emptyList() // Agar ID nahi mili to empty list return karo
+            if (contactId == null) return emptyList()
 
             val phoneList = mutableListOf<PhoneModel>()
             val contentResolver = context.contentResolver
@@ -53,7 +49,7 @@ class GetPhoneData {
                     val phoneNumber = it.getString(numberIndex)
                     val phoneType = it.getInt(typeIndex)
 
-                   var phoneLabel = if (phoneType != ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) {
+                   val phoneLabel = if (phoneType != ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM) {
                         getPhoneTypeLabel(phoneType)
                     }else{
                         "Custom"

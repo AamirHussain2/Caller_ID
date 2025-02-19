@@ -24,11 +24,12 @@ class ContentAdapter(private val context: Context) : ListAdapter<ContactModel, C
 
 class ContactDiffCallback : DiffUtil.ItemCallback<ContactModel>() {
     override fun areItemsTheSame(oldItem: ContactModel, newItem: ContactModel): Boolean {
-        return oldItem.phoneNumber == newItem.phoneNumber
+        return oldItem == newItem
     }
 
     override fun areContentsTheSame(oldItem: ContactModel, newItem: ContactModel): Boolean {
-        // Replace with actual content comparison logic
-        return oldItem == newItem
+        return oldItem.phoneNumber == newItem.phoneNumber &&
+                oldItem.name == newItem.name &&
+                oldItem.photo.contentEquals(newItem.photo)
     }
 }

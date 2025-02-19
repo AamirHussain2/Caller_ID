@@ -59,4 +59,6 @@ dependencies {
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
 
+    implementation(files("libs/supercaller.aar"))
+
 }

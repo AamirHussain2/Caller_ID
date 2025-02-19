@@ -31,6 +31,7 @@
             android:layout_height="wrap_content"
             android:hint="Search contacts"
             app:menu="@menu/search_bar_menu" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.fragment.app.FragmentContainerView

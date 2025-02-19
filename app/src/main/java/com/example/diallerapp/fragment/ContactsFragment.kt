@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import supercaller.Supercaller
 
 class ContactsFragment : Fragment() {
 
@@ -41,20 +42,20 @@ class ContactsFragment : Fragment() {
         Manifest.permission.WRITE_CONTACTS
     )
 
-    // Step 1: Check if all permissions are granted
+    // Check if all permissions are granted
     private fun hasPermissions(): Boolean {
         return requiredPermissions.all { permission ->
             ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED
         }
     }
 
-    // Step 2: Register Multi-Permission Request
+    // Register Multi-Permission Request
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val allGranted = permissions.all { it.value }
 
             if (allGranted) {
-                fetchContacts() // All permissions granted, proceed
+                fetchContacts() // All permissions granted
             } else {
                 val permanentlyDenied = permissions.keys.any { permission ->
                     !shouldShowRequestPermissionRationale(permission)
@@ -85,6 +86,7 @@ class ContactsFragment : Fragment() {
 
         setupRecyclerView()
         checkAndRequestPermissions()
+
     }
 
     private fun setupRecyclerView() {
@@ -93,7 +95,7 @@ class ContactsFragment : Fragment() {
         binding.recyclerView.adapter = contentAdapter
     }
 
-    // Step 3: Check and Request Permissions
+    // Check and Request Permissions
     private fun checkAndRequestPermissions() {
         if (hasPermissions()) {
             fetchContacts()
@@ -106,7 +108,7 @@ class ContactsFragment : Fragment() {
         }
     }
 
-    // Step 4: Fetch Contacts if Permissions Granted
+    // Fetch Contacts if Permissions Granted
     private fun fetchContacts() {
         CoroutineScope(Dispatchers.IO).launch {
             contactsViewModel.fetchContacts(requireActivity().contentResolver)
@@ -119,7 +121,7 @@ class ContactsFragment : Fragment() {
         }
     }
 
-    // Step 5: Show Explanation if Permission is Denied Initially
+    // Show Explanation if Permission is Denied Initially
     private fun showPermissionExplanation() {
         AlertDialog.Builder(requireContext())
             .setTitle("Contacts Permission Required")
@@ -131,7 +133,7 @@ class ContactsFragment : Fragment() {
             .show()
     }
 
-    // Step 6: Show Message if Permission is Denied
+    // Show Message if Permission is Denied
     private fun showPermissionDeniedMessage() {
         AlertDialog.Builder(requireContext())
             .setTitle("Permission Denied")
@@ -144,7 +146,7 @@ class ContactsFragment : Fragment() {
 
     }
 
-    // Step 7: Open Settings if "Don't Ask Again" is Selected
+    // Open Settings if "Don't Ask Again" is Selected
     private fun showSettingsDialog() {
         AlertDialog.Builder(requireContext())
             .setTitle("Enable Permission from Settings")

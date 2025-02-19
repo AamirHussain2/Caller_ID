@@ -6,7 +6,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.platform.LocalGraphicsContext
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
@@ -33,9 +35,15 @@ class InsertContactData {
             val resolver: ContentResolver = contentResolver
             val values = ContentValues()
 
+            Log.d("IMAGE", "insertContact: $contactProfilePic")
             try {
                 val rawContactUri: Uri? = resolver.insert(ContactsContract.RawContacts.CONTENT_URI, values)
                 val rawContactId: Long = rawContactUri?.lastPathSegment?.toLong() ?: -1
+
+                if (rawContactId == -1L) {
+                    Toast.makeText(context, "Error creating contact", Toast.LENGTH_SHORT).show()
+                    return
+                }
 
                 // Insert Name
                 val nameValues = ContentValues().apply {
@@ -116,8 +124,16 @@ class InsertContactData {
                         put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
                         put(ContactsContract.CommonDataKinds.Photo.PHOTO, convertImageToByteArray(contactProfilePic))
                     }
-                    resolver.insert(ContactsContract.Data.CONTENT_URI, profilePicValues)
+                   val uri =  resolver.insert(ContactsContract.Data.CONTENT_URI, profilePicValues)
+
+                    if (uri != null) {
+                        Log.d("IMAGE", "Image inserted successfully at URI: $uri")
+                    } else {
+                        Log.d("IMAGE", "Failed to insert image")
+                    }
                 }
+                // Contact Sync Force Karo Taake Image Show Ho
+                contentResolver.notifyChange(ContactsContract.Data.CONTENT_URI, null)
 
                 Toast.makeText(context, "Contact Saved", Toast.LENGTH_SHORT).show()
 

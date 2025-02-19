@@ -3,7 +3,14 @@ package com.example.diallerapp.activities
 import android.Manifest
 import android.app.Dialog
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.R
 import com.example.diallerapp.adapter.uicreatecontact.AddToLabelAdapter
@@ -29,6 +37,7 @@ import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
 import com.example.diallerapp.utils.DialogUtils
 import com.example.diallerapp.utils.SaveContactData
+import java.io.ByteArrayOutputStream
 import kotlin.properties.Delegates
 
 
@@ -51,8 +60,8 @@ class CreateContactActivity : AppCompatActivity() {
     private lateinit var companyName: String
     private lateinit var labelName: List<String>
 
+
     private lateinit var dialog: Dialog
-    private lateinit var addToLabelAdapter: AddToLabelAdapter
 
     private lateinit var updatedPhoneList: List<PhoneModel>
     private lateinit var updatedEmailList: List<EmailModel>
@@ -60,6 +69,20 @@ class CreateContactActivity : AppCompatActivity() {
     private lateinit var updatedBirthdayList: List<BirthdayModel>
     private lateinit var updatedContactId: String
     private lateinit var updatedGroupLabel: String
+
+    //set image to image view
+    private var contactProfilePic: Bitmap? = null
+
+    //get image through intent and then set image to image view
+    private lateinit var updatedImageByteArray: ByteArray
+
+
+    private val selectImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                setImageToImageView(it)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +99,15 @@ class CreateContactActivity : AppCompatActivity() {
 
         binding.crossButton.setOnClickListener { finish() }
 
+        if (updatedImageByteArray.isNotEmpty()){
+           val bitmap = BitmapFactory.decodeByteArray(updatedImageByteArray, 0, updatedImageByteArray.size)
+            binding.profileImage.setImageBitmap(bitmap)
+        }
+
+        binding.addPicButton.setOnClickListener {
+            selectImageLauncher.launch("image/*")
+
+        }
 
 
         setAddToLabel()
@@ -92,6 +124,32 @@ class CreateContactActivity : AppCompatActivity() {
 
     }
 
+    //set image to image view
+    private fun setImageToImageView(imageUri: Uri) {
+
+        contactProfilePic = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(contentResolver, imageUri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            @Suppress("DEPRECATION")
+            MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
+        }
+        binding.profileImage.setImageBitmap(contactProfilePic)
+
+//        if (updatedImageByteArray.isEmpty()) {
+//
+//            updatedImageByteArray = getByteArrayFromBitmap(contactProfilePic)
+//        }
+
+    }
+
+    // Function to Convert Bitmap to ByteArray
+    private fun getByteArrayFromBitmap(bitmap: Bitmap): ByteArray {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        return byteArrayOutputStream.toByteArray()
+    }
+
     private fun getIntentData() {
 
         // get intent data for text field
@@ -100,30 +158,52 @@ class CreateContactActivity : AppCompatActivity() {
             sureName = getStringExtra("contact_sureName") ?: ""
             companyName = getStringExtra("contact_company") ?: ""
 
+            //get image from intent
+            updatedImageByteArray = intent.getByteArrayExtra("contact_image") ?: ByteArray(0)
+
+//            val bitmap = BitmapFactory.decodeByteArray(updatedImageByteArray, 0, updatedImageByteArray.size)
+
             // set data with view
             binding.apply {
                 edFirstName.editText?.setText(firstName)
                 edSureName.editText?.setText(sureName)
                 edCompany.editText?.setText(companyName)
+//                profileImage.setImageBitmap(bitmap)
+
             }
         }
 
-        // get intent data for recycler view
+        // get contact id from intent
         updatedContactId = intent.getStringExtra("contact_id") ?: ""
         Log.d("contId", "get intent contact id: $updatedContactId")
 
-        updatedPhoneList = intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as? List<PhoneModel> ?: emptyList()
+        //get phone list from intent
+        updatedPhoneList =
+            intent.getParcelableArrayListExtra<PhoneModel>("phone_list") as? List<PhoneModel>
+                ?: emptyList()
         Log.d("TESTING", "updatedPhoneList...: $updatedPhoneList")
 
-        updatedEmailList = intent.getParcelableArrayListExtra<EmailModel>("email_list") as? List<EmailModel> ?: emptyList()
-        updatedAddressList = intent.getParcelableArrayListExtra<AddressModel>("address_list") as? List<AddressModel> ?: emptyList()
-        updatedBirthdayList = intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as? List<BirthdayModel> ?: emptyList()
+        //get email list from intent
+        updatedEmailList =
+            intent.getParcelableArrayListExtra<EmailModel>("email_list") as? List<EmailModel>
+                ?: emptyList()
 
+        //get address list from intent
+        updatedAddressList =
+            intent.getParcelableArrayListExtra<AddressModel>("address_list") as? List<AddressModel>
+                ?: emptyList()
+
+        //get birthday list from intent
+        updatedBirthdayList =
+            intent.getParcelableArrayListExtra<BirthdayModel>("birthday_list") as? List<BirthdayModel>
+                ?: emptyList()
+
+        //get group label from intent
         updatedGroupLabel = intent.getStringExtra("group_label") ?: ""
         Log.d("contId", "get intent group label: $updatedGroupLabel")
     }
 
-    private fun setAddToLabel(){
+    private fun setAddToLabel() {
         val groupLabelMutableList = mutableListOf<AddToLabelModel>()
 
         if (updatedGroupLabel.isNotEmpty()) {
@@ -142,7 +222,7 @@ class CreateContactActivity : AppCompatActivity() {
         }
 
         binding.addLabelButton.setOnClickListener {
-                showAddToLabelDialog(groupLabelMutableList)
+            showAddToLabelDialog(groupLabelMutableList)
 
 //            val dialogBinding = CustomAddToLabelDialogBinding.inflate(LayoutInflater.from(this))
 //
@@ -252,7 +332,8 @@ class CreateContactActivity : AppCompatActivity() {
 
         dialogBinding.apply {
             btnOk.isEnabled = false
-            recyclerViewAddToLabelDialog.layoutManager = LinearLayoutManager(this@CreateContactActivity)
+            recyclerViewAddToLabelDialog.layoutManager =
+                LinearLayoutManager(this@CreateContactActivity)
             recyclerViewAddToLabelDialog.adapter = addToLabelAdapter
         }
 
@@ -337,10 +418,14 @@ class CreateContactActivity : AppCompatActivity() {
 
         // Set up the Add Phone Item Button
         binding.addPhoneItem.setOnClickListener {
-            val newPhoneItemList = phoneAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
+            val newPhoneItemList =
+                phoneAdapter.currentList.map { it.copy(isLabelVisible = false) }.toMutableList()
             Log.d("DEBUG", "newPhoneItemList: $newPhoneItemList")
             newPhoneItemList.add(PhoneModel("", "", isLabelVisible = true))
-            Log.d("DEBUG", "Phone List: ${newPhoneItemList.size} \n ${newPhoneItemList.forEach { it.phoneNumber + it.phoneLabel }}")
+            Log.d(
+                "DEBUG",
+                "Phone List: ${newPhoneItemList.size} \n ${newPhoneItemList.forEach { it.phoneNumber + it.phoneLabel }}"
+            )
 
             phoneAdapter.submitList(newPhoneItemList.toList())
         }
@@ -538,6 +623,10 @@ class CreateContactActivity : AppCompatActivity() {
             companyName = binding.edCompany.editText?.text.toString().trim()
             labelName = listOf(binding.autoComplete.text.toString())
 
+            val drawable = binding.profileImage.drawable
+            contactProfilePic = if (drawable is BitmapDrawable) drawable.bitmap else null
+
+
             // Collect phone numbers
             val allPhoneData = phoneAdapter.currentList
 
@@ -570,7 +659,7 @@ class CreateContactActivity : AppCompatActivity() {
     ) {
         if (permissions.all {
                 ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-        }) {
+            }) {
 
             saveContactData(
                 phoneList = phoneList,
@@ -614,10 +703,6 @@ class CreateContactActivity : AppCompatActivity() {
         birthdayList: List<BirthdayModel>
     ) {
         try {
-            val contactProfilePic = SaveContactData.convertDrawableResToBitmap(
-                this,
-                R.drawable.ic_launcher_background
-            )
 
             SaveContactData.insertOrUpdateContact(
                 context = this,
@@ -641,8 +726,6 @@ class CreateContactActivity : AppCompatActivity() {
         }
         finish()
     }
-
-
 
 
     override fun onDestroy() {

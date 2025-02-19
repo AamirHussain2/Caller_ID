@@ -1,16 +1,22 @@
 package com.example.diallerapp.utils
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
+import android.widget.Toast
 import com.example.diallerapp.model.uicreatecontact.AddressModel
 import com.example.diallerapp.model.uicreatecontact.BirthdayModel
 import com.example.diallerapp.model.uicreatecontact.EmailModel
 import com.example.diallerapp.model.uicreatecontact.PhoneModel
+import java.io.ByteArrayOutputStream
 
 class GetAllContactData{
 
     companion object {
+
 
          // Function to get Contact ID from Phone Number
         fun getContactIdFromPhoneNumber(context: Context, phoneNumber: String): String? {
@@ -38,6 +44,7 @@ class GetAllContactData{
                         Log.e("GetAllContactData", "CONTACT_ID column not found")
                     }
                 } else {
+//                    Toast.makeText(context, "No contact found for phone number", Toast.LENGTH_SHORT).show()
                     Log.e("GetAllContactData", "No contact found for phone number: $phoneNumber")
                 }
             }
@@ -45,6 +52,52 @@ class GetAllContactData{
 
             return contactId
         }
+
+        //Function to get Contact Image from Phone Number
+        fun getContactImageFromPhoneNumber(context: Context, phoneNumber: String): ByteArray? {
+            val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
+            return getContactImageFromContactId(context, contactId)
+        }
+
+        //Function to get Contact Image from Contact ID
+        private fun getContactImageFromContactId(context: Context, contactId: String?): ByteArray? {
+            if (contactId == null) return null
+
+            val contentResolver = context.contentResolver
+            val uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, contactId)
+            val projection = arrayOf(ContactsContract.Contacts.PHOTO_URI)
+
+            var contactImageUri: String? = null
+            val cursor = contentResolver.query(uri, projection, null, null, null)
+
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val photoUriIndex = it.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                    if (photoUriIndex != -1) {
+                        contactImageUri = it.getString(photoUriIndex)
+                    }else{
+                        Log.e("GetAllContactData", "PHOTO_URI column not found")
+                    }
+                }
+            }
+
+            cursor?.close()
+
+            contactImageUri?.let {
+                val imageUri = Uri.parse(it)
+                val inputStream = contentResolver.openInputStream(imageUri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+
+                // Convert the bitmap to ByteArray and return
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                return byteArrayOutputStream.toByteArray()
+            }
+
+            return null //if image not found then return null
+        }
+
 
         // Function to get First Name directly from Phone Number
         fun getFirstNameFromPhoneNumber(context: Context, phoneNumber: String): String?{
@@ -54,7 +107,7 @@ class GetAllContactData{
 
         // Function to get First Name using Contact ID
         private fun getFirstNameFromContactId(context: Context, contactId: String?): String? {
-            if (contactId == null) return null // Agar ID nahi mili toh null return karo
+            if (contactId == null) return null
 
             val contentResolver = context.contentResolver
             var firstName: String? = null
@@ -91,10 +144,10 @@ class GetAllContactData{
 
         // Function to get Sure Name using Contact ID
         private fun getSureNameFromContactId(context: Context, contactId: String?): String? {
-            if (contactId == null) return null  // Agar contact ID nahi mili to return null
+            if (contactId == null) return null
             val contentResolver = context.contentResolver
 
-            // Step 2: Contact ID se Surname Dhoondo
+
             val nameUri = ContactsContract.Data.CONTENT_URI
             val nameProjection = arrayOf(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME)
 
@@ -189,7 +242,7 @@ class GetAllContactData{
         }
 
         private fun getCompanyNameFromContactId(context: Context, contactId: String?): String? {
-            if (contactId == null) return null // Agar ID nahi mili toh null return karo
+            if (contactId == null) return null
 
             val contentResolver = context.contentResolver
             var companyName: String? = null
@@ -221,6 +274,7 @@ class GetAllContactData{
         // Function to get birthday and label directly from Phone Number
         fun getBirthdayAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<BirthdayModel>{
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
+
             if (contactId == null) {
                 Log.e("GetAllContactData", "No Contact ID found for phone number: $phoneNumber")
                 return emptyList() // Return an empty list instead of crashing
@@ -232,6 +286,7 @@ class GetAllContactData{
         fun getAddressAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<AddressModel>{
 
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
+
             if (contactId == null) {
                 Log.e("GetAllContactData", "No Contact ID found for phone number: $phoneNumber")
                 return emptyList() // Return an empty list instead of crashing
@@ -243,9 +298,7 @@ class GetAllContactData{
         fun getPhoneAndLabelFromPhoneNumber(context: Context, phoneNumber: String): List<PhoneModel>{
             val contactId = getContactIdFromPhoneNumber(context, phoneNumber)
 
-            val list =  GetPhoneData.getPhoneAndLabelFromPhoneNumber(context, contactId)
-
-            return list
+            return GetPhoneData.getPhoneAndLabelFromPhoneNumber(context, contactId)
 
         }
 
