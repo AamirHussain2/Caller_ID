@@ -7,8 +7,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
-import android.widget.Toast
-import androidx.core.database.getBlobOrNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,7 +25,6 @@ class ContactsViewModel : ViewModel() {
 
     fun fetchContacts(contentResolver: ContentResolver) {
         viewModelScope.launch {
-
             val contactList = fetchContactsFromPhoneList(contentResolver)
 
             _contacts.postValue(contactList)
@@ -39,6 +36,7 @@ class ContactsViewModel : ViewModel() {
     ): List<ContactModel> {
         return withContext(Dispatchers.IO) {
             val contactList = mutableListOf<ContactModel>()
+            val contactMap = mutableMapOf<Long, MutableList<String>>() // To store multiple numbers for a contact
             var cursor: Cursor? = null
 
             try {
@@ -60,7 +58,6 @@ class ContactsViewModel : ViewModel() {
                     return@withContext contactList
                 }
 
-                // Ensure valid column indexes
                 val displayNameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                 val phoneNumberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 val contactIdIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
@@ -75,26 +72,29 @@ class ContactsViewModel : ViewModel() {
                     val name = cursor.getString(displayNameIndex) ?: ""
                     val phoneNumber = cursor.getString(phoneNumberIndex) ?: ""
                     val contactId = cursor.getLong(contactIdIndex)
-                    Log.d("ContactsViewModel", "Contact ID: $contactId")
                     val photoUri = cursor.getString(photoIndex)
 
-                    photoUri?.let {
-                        val imageStream = contentResolver.openInputStream(Uri.parse(photoUri))
-                        val bitmap = BitmapFactory.decodeStream(imageStream)
+                    // Check if this contactId already exists in map
+                    if (contactMap.containsKey(contactId)) {
+                        // If contact exists, just add the new phone number to list
+                        contactMap[contactId]?.add(phoneNumber)
+                    } else {
+                        // If contact does not exist, create a new entry and add to list
+                        contactMap[contactId] = mutableListOf(phoneNumber)
 
-                        // Convert bitmap to ByteArray
-                        val byteArrayOutputStream = ByteArrayOutputStream()
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-                        val contactImage = byteArrayOutputStream.toByteArray()
+                        // Process and store contact photo
+                        val contactImage: ByteArray? = photoUri?.let {
+                            val imageStream = contentResolver.openInputStream(Uri.parse(it))
+                            val bitmap = BitmapFactory.decodeStream(imageStream)
+                            val byteArrayOutputStream = ByteArrayOutputStream()
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                            imageStream?.close()
+                            byteArrayOutputStream.toByteArray()
+                        }
 
+                        // Add only one phone number (first occurrence) to UI list
                         contactList.add(ContactModel(name, phoneNumber, contactId, contactImage))
-
-                        imageStream?.close()
-                    }?: run {
-                        // Add contact without photo
-                        contactList.add(ContactModel(name, phoneNumber, contactId, null))
                     }
-
                 }
             } catch (e: Exception) {
                 Log.e("ContactsViewModel", "Error fetching contacts: ${e.message}")
@@ -105,5 +105,6 @@ class ContactsViewModel : ViewModel() {
             return@withContext contactList
         }
     }
+
 
 }

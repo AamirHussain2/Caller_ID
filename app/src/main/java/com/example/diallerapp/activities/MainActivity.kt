@@ -48,21 +48,21 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         handleIncomingIntent()
 
-        val type1 = Supercaller.getPhoneDetailsType1(
-            "3041580422",
-            "PK"
-        )
-        Log.e("TAG","Type1: ${type1}")
-
-        val type2 = Supercaller.getPhoneDetailsType2(
-            "12155909700", // Without country code
-        )
-        Log.e("TAG","Type1: $type2")
-
-        val type3 = Supercaller.getPhoneDetailsType2(
-            "923041580422", // Without country code
-        )
-        Log.e("TAG","Type3: $type3")
+//        val type1 = Supercaller.getPhoneDetailsType1(
+//            "3041580422",
+//            "PK"
+//        )
+//        Log.e("TAG","Type1: ${type1}")
+//
+//        val type2 = Supercaller.getPhoneDetailsType2(
+//            "12155909700", // Without country code
+//        )
+//        Log.e("TAG","Type2: $type2")
+//
+//        val type3 = Supercaller.getPhoneDetailsType2(
+//            "923041580422", // Without country code
+//        )
+//        Log.e("TAG","Type3: $type3")
 
 
     }

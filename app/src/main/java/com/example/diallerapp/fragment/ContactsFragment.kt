@@ -12,13 +12,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diallerapp.activities.CreateContactActivity
-import com.example.diallerapp.adapter.ContentAdapter
+import com.example.diallerapp.adapter.ContactAdapter
 import com.example.diallerapp.databinding.FragmentContactsBinding
 import com.example.diallerapp.viewmodel.ContactsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -33,7 +32,7 @@ class ContactsFragment : Fragment() {
     private var _binding: FragmentContactsBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var contentAdapter: ContentAdapter
+    private lateinit var contactAdapter: ContactAdapter
     private val contactsViewModel: ContactsViewModel by viewModels()
 
     // Required Permissions List
@@ -90,9 +89,9 @@ class ContactsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        contentAdapter = ContentAdapter(requireContext())
+        contactAdapter = ContactAdapter(requireContext())
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerView.adapter = contentAdapter
+        binding.recyclerView.adapter = contactAdapter
     }
 
     // Check and Request Permissions
@@ -115,7 +114,7 @@ class ContactsFragment : Fragment() {
 
             withContext(Dispatchers.Main) {
                 contactsViewModel.contacts.observe(viewLifecycleOwner) { contacts ->
-                    contentAdapter.submitList(contacts.toList())
+                    contactAdapter.submitList(contacts.toList())
                 }
             }
         }
